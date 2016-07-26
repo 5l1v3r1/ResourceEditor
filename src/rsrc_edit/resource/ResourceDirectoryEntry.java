@@ -97,7 +97,7 @@ public class ResourceDirectoryEntry {
             
             if( !ResourceName.isEmpty() ){
                 aRD.addIdToStack(ResourceName);
-                aRD.setType( "Named" );
+                aRD.setType( ResourceDataEntry.NAMED );
             } else 
                 aRD.addIdToStack(Name_Int_Id);
             

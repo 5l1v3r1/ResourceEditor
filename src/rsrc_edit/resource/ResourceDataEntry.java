@@ -14,14 +14,14 @@ import rsrc_edit.MainJFrame;
  * @author user
  */
 public class ResourceDataEntry {
+
+    public static final String NAMED = "Named";
     
     public long DataVirtualAddr;
     public long Size; 
     public int CodePage; 
     public int Reserved; 
-    public String Type = "Integer";
-    
-    public boolean isNamed = false;    
+    public String Type = "Integer";      
     public Stack<Object> ID_Stack = new Stack<>();
     
     public byte[] data = null;
@@ -66,24 +66,6 @@ public class ResourceDataEntry {
         ID_Stack.push(passedObj);
     }
     
-    //=========================================================================
-    /**
-     * 
-     * @param passedBool 
-     */
-    public void setNamedFlag( boolean passedBool ){
-        isNamed = passedBool;
-    }
-    
-    //=========================================================================
-    /**
-     * 
-     * @return 
-     */
-    public boolean getNamedFlag(){
-        return isNamed;
-    }
-
     //=========================================================================
     /**
      * 

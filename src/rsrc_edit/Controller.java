@@ -13,26 +13,15 @@ import javax.swing.JPanel;
  */
 public abstract class Controller {
     
-    protected boolean headless = true;
     
     //========================================================================
     /**
      * 
      * @param passedBool 
      */
-    public Controller( boolean passedBool ){
-        headless = passedBool;
+    public Controller(){
     }
     
-     //=========================================================================
-    /**
-     * 
-     * @return 
-     */
-    public boolean isHeadless(){
-        return headless;
-    }
-
     //=========================================================================
     /**
     * 

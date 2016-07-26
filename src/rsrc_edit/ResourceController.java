@@ -5,14 +5,23 @@
  */
 package rsrc_edit;
 
-import java.io.UnsupportedEncodingException;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.Icon;
 import javax.swing.JPanel;
+import static rsrc_edit.MainJFrame.IMAGE_DIRECTORY_ENTRY_RESOURCE;
+import rsrc_edit.pe.DosHeader;
+import rsrc_edit.pe.ImageDataDirectory;
+import rsrc_edit.pe.ImageSectionHeader;
+import rsrc_edit.pe.NtHeader;
 import rsrc_edit.resource.ResourceDataEntry;
+import rsrc_edit.resource.ResourceDirectoryTable;
 
 /**
  *
@@ -23,24 +32,33 @@ public class ResourceController extends Controller implements Iconable, Ancestor
     private ResourceDataEntry theRDE;
     protected Icon theIcon;
     private final List<ResourceController> childControllers = new ArrayList<>();
+    private JPanel thePanel = null;
+    private final MainJFrame parentFrame;
 
-    public ResourceController(ResourceDataEntry passedRDE, boolean passedBool) {
-        super(passedBool);
+    public ResourceController( MainJFrame passedFrame, ResourceDataEntry passedRDE ) {
+        super();
+        parentFrame = passedFrame;
         theRDE = passedRDE;
         if( theRDE.toString().equals("String Table")){
             
             //Wrap data in byte buffer
-            int marker = 26;
+            int marker = 0;
             byte[] stringData = theRDE.data;
+            
             ByteBuffer aBB = ByteBuffer.wrap(stringData);
             aBB.order(ByteOrder.LITTLE_ENDIAN);
-            aBB.position(marker);
             
             //Get size of string
             while( aBB.hasRemaining() ){
                 
-                int str_size = aBB.getShort() * 2;
+                int length = aBB.getShort();
                 marker += 2;
+                if( length == 0x0)
+                    continue;
+                
+                
+                int data_off = marker;
+                int str_size = length * 2;
                 
                 if( str_size > 0 ){
                     
@@ -50,24 +68,92 @@ public class ResourceController extends Controller implements Iconable, Ancestor
                     
                     //Get the id
                     aBB.position( marker - 8);
-                    byte[] idStr = new byte[8];
-                    aBB.get(idStr);
-                    try {
-                        String uniStr = new String(idStr, "UTF-16LE");
-                        byte[] id_bytes = uniStr.getBytes();
-                        ByteBuffer idBB = ByteBuffer.wrap(id_bytes);
-                        long id = idBB.getInt();
-                        
-                        ResourceDataEntry aRDE = new ResourceDataEntry(passedRDE.DataVirtualAddr + marker, str_size - 8, id,aStrArr);
-                        aRDE.setType("String");
-                        //Add the resource
-                        ResourceController aRC = new ResourceController(aRDE, passedBool);
-                        childControllers.add(aRC);
-                        
-                    } catch (UnsupportedEncodingException ex) {
+                    byte[] idStr = new byte[4];
+                    for( int i =0; i < 4; i++ ){
+                        idStr[i] = aBB.get();
+                        aBB.get();
                     }
+                    
+                    ByteBuffer idBB = ByteBuffer.wrap(idStr);
+                    String id = String.format("0x%08x", idBB.getInt() );
+
+                    int actual_str_size = str_size - 10;
+                    ResourceDataEntry aRDE = new ResourceDataEntry(passedRDE.DataVirtualAddr + data_off, 
+                            actual_str_size, id,aStrArr);
+                    
+                    aRDE.setType("String");
+                    //Add the resource
+                    ResourceController aRC = new ResourceController( parentFrame, aRDE );
+                    childControllers.add(aRC);
+                        
+                   
                 }
             }
+            
+        } else if(theRDE.toString().equals("BIN")){
+            
+            //Check if the internal binary is a PE and parse it
+            if( theRDE.data[0] == (byte)'M' && theRDE.data[1] == (byte)'Z' ){
+                
+                //Wrapped buffer
+                ByteBuffer buf = ByteBuffer.wrap(theRDE.data);
+                buf.order(ByteOrder.LITTLE_ENDIAN); // or ByteOrder.BIG_ENDIAN
+                
+                try {
+                    //Read the DOS header
+                    DosHeader theDosHeader = new DosHeader(buf);
+                    buf.position((int) theDosHeader.e_lfanew);
+                                         
+                    //Get the NT header
+                    NtHeader theNtHeader = new NtHeader(buf);
+
+                    //Get Sections
+                    HashMap<String, ImageSectionHeader> sectionHeaderMap = new HashMap<>();
+                    for( int i =0; i < theNtHeader.FileHeader.NumberOfSections; i++ ){
+                        ImageSectionHeader aSectionHeader = new ImageSectionHeader(buf);
+                        sectionHeaderMap.put( aSectionHeader.Name, aSectionHeader);                                        
+                    }
+
+                    ImageDataDirectory relocDataDir = theNtHeader.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_RESOURCE];
+                    long resourceVitualAddr = relocDataDir.VirtualAddress;
+                    
+                    //Get the resource section
+                    ImageSectionHeader resourceSectionHeader = sectionHeaderMap.get(".rsrc");
+                   // long size = resourceSectionHeader.SizeOfRawData;
+                    long rawResourceAddr = resourceSectionHeader.PointerToRawData;
+                    
+                    
+                    //Get the resource data
+                    buf.position((int) rawResourceAddr);
+                    ByteBuffer buf2 = buf.slice();
+                    buf2.order(ByteOrder.LITTLE_ENDIAN); // or ByteOrder.BIG_ENDIAN
+
+                    //Parse resource table
+                    ResourceDirectoryTable mainTable = new ResourceDirectoryTable(buf2, rawResourceAddr - resourceVitualAddr );
+                    List<ResourceDataEntry> resourceList = mainTable.getResources();
+
+                     //Go get data
+                    for( ResourceDataEntry aRDS : resourceList ) {
+
+                        if( aRDS.data == null ){                       
+
+                            buf.position((int) aRDS.DataVirtualAddr);
+
+                            aRDS.data = new byte[(int)aRDS.Size];
+                            buf.get(aRDS.data);
+
+                        }
+                        
+                        //Add the resource
+                        ResourceController aRC = new ResourceController( parentFrame, aRDS );
+                        childControllers.add(aRC);
+                    }
+                    
+                } catch (IOException ex) {
+                    Logger.getLogger(ResourceController.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            
         }
     }
    
@@ -88,7 +174,17 @@ public class ResourceController extends Controller implements Iconable, Ancestor
 
     @Override
     public JPanel getRootPanel() {
-        return null;
+        
+        if( thePanel == null ){
+            if( theRDE.getType().equals("String")){
+                thePanel = new StringResourceJPanel( this );
+            } else if( theRDE.getType().equals(ResourceDataEntry.NAMED) ){
+                thePanel = new BinaryResourceJPanel( this );                
+            } else {
+                thePanel = new JPanel();
+            }
+        }
+        return thePanel;
     }
 
     @Override
@@ -124,6 +220,14 @@ public class ResourceController extends Controller implements Iconable, Ancestor
     @Override
     public boolean hasChild(ResourceController libraryItem) {
         return childControllers.size() > 0;
+    }
+
+    //=======================================================================
+    /**
+     * 
+     */
+    public MainJFrame getParentFrame() {
+        return parentFrame;
     }
     
 }

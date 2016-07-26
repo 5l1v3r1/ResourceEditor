@@ -208,4 +208,26 @@ public class Utilities {
         return rtnImage;
     }
     
+    public static String byteArrayToHex(byte[] a) {
+        StringBuilder sb = new StringBuilder(a.length * 2);
+        for(byte b: a)
+            sb.append(String.format("%02x", b & 0xff));
+        return sb.toString();
+    }
+    
+     //===============================================================
+    /**
+     * 
+     * @param value
+     * @return 
+     */
+    public static short byteArrayToShort(byte[] value){
+
+        short tempInt = 0;
+        for(int i = 0, j = value.length; i < value.length; i++, j-- ){
+            tempInt += (value[i] & 0xff) << (8 * (j - 1));
+        }
+        return tempInt;
+
+    }
 }

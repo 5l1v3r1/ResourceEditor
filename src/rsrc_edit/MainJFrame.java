@@ -8,6 +8,7 @@ package rsrc_edit;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Image;
+import java.awt.event.ActionEvent;
 import rsrc_edit.pe.DosHeader;
 import rsrc_edit.pe.NtHeader;
 import rsrc_edit.pe.ImageSectionHeader;
@@ -43,15 +44,16 @@ import rsrc_edit.pe.ImageDataDirectory;
 public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListener {
 
     private JFileChooser theFileChooser = null;
-    private FileChannel currentBinaryFileChannel = null;
-    private long resourceVitualAddr;
-    private long rawResourceAddr;
+    //private long resourceVitualAddr;
+    //private long rawResourceAddr;
     private final ResourceJTree mainJTree = new ResourceJTree();
     
     public static final int IMAGE_DIRECTORY_ENTRY_RESOURCE = 2;
     public static Map<String, String> theResourceMap = new HashMap<>();
-    
+   
     public static final String RESOURCE_IMG_STR = "rsrc.png";
+    private File userSelectedFile;
+    
       
     /**
      * Creates new form ConfigJFrame
@@ -120,10 +122,11 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
         dataScrollPane = new javax.swing.JScrollPane();
         jTreeScrollPane = new javax.swing.JScrollPane();
         mainMenuBar = new javax.swing.JMenuBar();
-        jMenu1 = new javax.swing.JMenu();
+        fileMenu = new javax.swing.JMenu();
         loadMenuItem = new javax.swing.JMenuItem();
         exitMenuItem = new javax.swing.JMenuItem();
-        jMenu2 = new javax.swing.JMenu();        
+        stringMapMenuItem = new javax.swing.JMenuItem();
+        editMenu = new javax.swing.JMenu();        
         
         //Set preferred height
         jTreeScrollPane.setPreferredSize(new Dimension(100,322));
@@ -186,28 +189,39 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
 
         jTreeScrollPane.setViewportView(mainJTree);
 
-        jMenu1.setText("File");
+        fileMenu.setText("File");
 
         loadMenuItem.setText("Load Binary");
         loadMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            @Override
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 loadMenuItemActionPerformed(evt);
             }
         });
-        jMenu1.add(loadMenuItem);
+        fileMenu.add(loadMenuItem);
 
         exitMenuItem.setText("Exit");
         exitMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            @Override
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 exitMenuItemActionPerformed(evt);
             }
         });
-        jMenu1.add(exitMenuItem);
+        fileMenu.add(exitMenuItem);
 
-        mainMenuBar.add(jMenu1);
+        mainMenuBar.add(fileMenu);
 
-        jMenu2.setText("Edit");
-        mainMenuBar.add(jMenu2);
+        editMenu.setText("Edit");
+        
+        stringMapMenuItem.setText("String Map");
+        stringMapMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                stringMapMenuItemActionPerformed(evt);
+            }            
+        });
+        editMenu.add(stringMapMenuItem);
+        
+        mainMenuBar.add(editMenu);
 
         setJMenuBar(mainMenuBar);
 
@@ -248,22 +262,22 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
     }                  
 
     private void exitMenuItemActionPerformed(java.awt.event.ActionEvent evt) {                                           
-        if( currentBinaryFileChannel != null )
-            try { currentBinaryFileChannel.close(); } catch (IOException ex) { }
-            
         System.exit(0);
-    }                                         
+    }   
+    
+    //================================================================
+    /**
+     * 
+     * @param evt 
+     */
+    private void stringMapMenuItemActionPerformed(ActionEvent evt) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 
     private void loadMenuItemActionPerformed(java.awt.event.ActionEvent evt) {                                           
         loadBinary();
     }                                         
-
-    public static String byteArrayToHex(byte[] a) {
-        StringBuilder sb = new StringBuilder(a.length * 2);
-        for(byte b: a)
-            sb.append(String.format("%02x", b & 0xff));
-        return sb.toString();
-    }
+    
     /**
      * @param args the command line arguments
      */
@@ -308,12 +322,13 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
     // Variables declaration - do not modify             
     private javax.swing.JScrollPane dataScrollPane;
     private javax.swing.JMenuItem exitMenuItem;
+    private javax.swing.JMenuItem stringMapMenuItem;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
-    private javax.swing.JMenu jMenu1;
-    private javax.swing.JMenu jMenu2;
+    private javax.swing.JMenu fileMenu;
+    private javax.swing.JMenu editMenu;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jTreeScrollPane;
     private javax.swing.JMenuItem loadMenuItem;
@@ -322,22 +337,7 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
     private javax.swing.JLabel typeLabel;
     // End of variables declaration         
 
-    //===============================================================
-    /**
-     * 
-     * @param value
-     * @return 
-     */
-    public static short byteArrayToShort(byte[] value){
-
-        short tempInt = 0;
-        for(int i = 0, j = value.length; i < value.length; i++, j-- ){
-            tempInt += (value[i] & 0xff) << (8 * (j - 1));
-        }
-        return tempInt;
-
-    }
-    
+       
      //======================================================================
     /**
     *   Populates the tree model
@@ -362,7 +362,7 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
             for( ResourceDataEntry aRDE : resourceList ){
                 
                 //Get an entry
-                ResourceController aController = new ResourceController( aRDE, false);
+                ResourceController aController = new ResourceController( this, aRDE );
                 int index = parentNode.getChildCount();
                 mainJTree.addObjectToTree( aController, parentNode, index );
                 
@@ -383,11 +383,18 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
 
     }
     
+    //=========================================================================
+    /**
+     * 
+     * @return 
+     */
+    public File getLoadedFile(){
+        return userSelectedFile;
+    }
+    
     //Load binary from disk
     private void loadBinary() {
         
-        File userSelectedFile = null;
-
         int returnVal = theFileChooser.showDialog( this, "Select File(s)" ); //Show the dialog
         switch( returnVal ) {
 
@@ -407,6 +414,7 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
         if(userSelectedFile != null){
             
             FileInputStream aFIS = null;
+            FileChannel currentBinaryFileChannel = null;
             try {
                 
                 //Open file
@@ -440,12 +448,12 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
                 }
                 
                 ImageDataDirectory relocDataDir = theNtHeader.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_RESOURCE];
-                resourceVitualAddr = relocDataDir.VirtualAddress;
+                long resourceVitualAddr = relocDataDir.VirtualAddress;
                 
                 //Get the resource section
                 ImageSectionHeader resourceSectionHeader = sectionHeaderMap.get(".rsrc");
                 long size = resourceSectionHeader.SizeOfRawData;
-                rawResourceAddr = resourceSectionHeader.PointerToRawData;
+                long rawResourceAddr = resourceSectionHeader.PointerToRawData;
                  
                 //Get the resource data
                 buf = ByteBuffer.allocate((int) size);
@@ -488,7 +496,13 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
                 Logger.getLogger(MainJFrame.class.getName()).log(Level.SEVERE, null, ex);
             } catch (IOException ex) {
                 Logger.getLogger(MainJFrame.class.getName()).log(Level.SEVERE, null, ex);
-            } 
+            } finally {
+                if( currentBinaryFileChannel != null )
+                    try { 
+                        currentBinaryFileChannel.close(); 
+                    } catch (IOException ex) { }
+            }
+        
         }
     }
 
