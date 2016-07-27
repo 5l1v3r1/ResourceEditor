@@ -5,17 +5,20 @@
  */
 package rsrc_edit;
 
+import java.awt.event.ItemEvent;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import rsrc_edit.codec.Codec;
 import rsrc_edit.resource.ResourceDataEntry;
+import rsrc_edit.settings.Settings;
 
 /**
  *
@@ -24,6 +27,7 @@ import rsrc_edit.resource.ResourceDataEntry;
 public class StringResourceJPanel extends javax.swing.JPanel {
 
     private final ResourceController theResourceController;
+    private boolean labelChanged = false;
   
     /**
      * Creates new form StringResourceJPanel
@@ -45,14 +49,11 @@ public class StringResourceJPanel extends javax.swing.JPanel {
     private void initComponents() {
 
         valueJTextField = new javax.swing.JTextField();
-        valueJLabel = new javax.swing.JLabel();
         saveButton = new javax.swing.JButton();
         jSeparator1 = new javax.swing.JSeparator();
-
-        valueJLabel.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
-        valueJLabel.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
-        valueJLabel.setLabelFor(valueJTextField);
-        valueJLabel.setText("< Undefined - Edit->String Map >");
+        encodingComboBox = new javax.swing.JComboBox<>();
+        encodingLabel = new javax.swing.JLabel();
+        valueLabelField = new javax.swing.JTextField();
 
         saveButton.setText("Save");
         saveButton.addActionListener(new java.awt.event.ActionListener() {
@@ -61,41 +62,70 @@ public class StringResourceJPanel extends javax.swing.JPanel {
             }
         });
 
+        encodingComboBox.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                encodingComboBoxItemStateChanged(evt);
+            }
+        });
+
+        encodingLabel.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        encodingLabel.setText("Encoding:");
+
+        valueLabelField.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        valueLabelField.setText("< Undefined >");
+        valueLabelField.setBorder(null);
+        valueLabelField.setOpaque(false);
+        valueLabelField.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                valueLabelFieldKeyReleased(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(saveButton))
+                        .addComponent(encodingLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(encodingComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 84, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 153, Short.MAX_VALUE))
                     .addComponent(valueJTextField)
-                    .addComponent(jSeparator1)
-                    .addComponent(valueJLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 305, Short.MAX_VALUE))
+                    .addComponent(jSeparator1, javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(valueLabelField)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(saveButton)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(55, 55, 55)
-                .addComponent(valueJLabel)
+                .addContainerGap(33, Short.MAX_VALUE)
+                .addComponent(valueLabelField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 7, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(5, 5, 5)
+                .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 2, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(14, 14, 14)
                 .addComponent(valueJTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(23, 23, 23)
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(encodingComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(encodingLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 41, Short.MAX_VALUE)
                 .addComponent(saveButton)
-                .addContainerGap(49, Short.MAX_VALUE))
+                .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
 
     private void saveButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveButtonActionPerformed
+        
+        ResourceDataEntry aRDE = theResourceController.getObject();
         File binFile = theResourceController.getParentFrame().getLoadedFile();
         if( binFile != null ){
             
-            ResourceDataEntry aRDE = theResourceController.getObject();
             //Don't count the string size and id fields
             int availSpace = (int) (aRDE.Size);
             
@@ -107,11 +137,17 @@ public class StringResourceJPanel extends javax.swing.JPanel {
                 currentBinaryFileChannel = aFOS.getChannel();
                 
                 String userString = valueJTextField.getText();
+                
+                //Get selected encoding
+                Codec selectedCodec = (Codec)encodingComboBox.getSelectedItem();
+                byte[] value = selectedCodec.encode(userString.getBytes());
+                userString = new String(value);               
+                
                 if( userString.length() > 0 ){
                     byte[] strBytes = userString.getBytes("UTF-16LE");
                     strBytes = Arrays.copyOf(strBytes, availSpace);
                     ByteBuffer aBB = ByteBuffer.wrap(strBytes);
-                    currentBinaryFileChannel.write(aBB, aRDE.DataVirtualAddr + 2);
+                    currentBinaryFileChannel.write(aBB, aRDE.DataVirtualAddr + aRDE.Embedded_Write_Delta);
                 }               
                 
             } catch (FileNotFoundException ex) {
@@ -126,31 +162,77 @@ public class StringResourceJPanel extends javax.swing.JPanel {
             }
             
         }
+        
+        //Change the value for the label
+        if( labelChanged ){            
+            //Get the label value
+            String labelVal = valueLabelField.getText();
+            String stringId = aRDE.toString();
+            
+            //Add to settings
+            Settings theSettings = theResourceController.getParentFrame().getSettings();
+            theSettings.setStringForId(stringId, labelVal);
+            
+            //Save
+            theResourceController.getParentFrame().saveSettings();
+            labelChanged = false;
+        }
     }//GEN-LAST:event_saveButtonActionPerformed
+
+    private void valueLabelFieldKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_valueLabelFieldKeyReleased
+        labelChanged = true;
+    }//GEN-LAST:event_valueLabelFieldKeyReleased
+
+    private void encodingComboBoxItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_encodingComboBoxItemStateChanged
+        
+        if(evt.getStateChange() == ItemEvent.SELECTED){
+            
+           
+                Codec theCodec = (Codec) encodingComboBox.getSelectedItem();
+                ResourceDataEntry aRDE =  theResourceController.getObject();
+                if( aRDE.data[0] != 0x0 || aRDE.data[1] != 0x0){
+                    byte[] unicodebytes = Arrays.copyOfRange(aRDE.data, 0, aRDE.data.length - 8);
+                    byte[] asciibytes = Utilities.unicodeToAscii(unicodebytes);
+                    byte[] decoded = theCodec.decode(asciibytes);
+                    valueJTextField.setText(new String(decoded).trim());
+                }
+           
+            
+        }
+    }//GEN-LAST:event_encodingComboBoxItemStateChanged
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JComboBox<Codec> encodingComboBox;
+    private javax.swing.JLabel encodingLabel;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JButton saveButton;
-    private javax.swing.JLabel valueJLabel;
     private javax.swing.JTextField valueJTextField;
+    private javax.swing.JTextField valueLabelField;
     // End of variables declaration//GEN-END:variables
 
     private void initializeComponents() {
+        
+        MainJFrame aFrame = theResourceController.getParentFrame();
+        Settings appSettings = aFrame.getSettings();
+        
         String idStr = theResourceController.toString();
-        String actualStr = Constants.ID_STRING_MAP.get(idStr);
+        String actualStr = appSettings.getStringForId(idStr);
         if( actualStr != null ){
-            valueJLabel.setText(actualStr);
+            valueLabelField.setText(actualStr);
         }
         
-        try {
-            ResourceDataEntry aRDE =  theResourceController.getObject();
-            if( aRDE.data[0] != 0x0 || aRDE.data[1] != 0x0){
-                String data = new String( Arrays.copyOfRange(aRDE.data, 0, aRDE.data.length - 8), "UTF-16LE").trim();
-                valueJTextField.setText(data);
-            }
-        } catch (UnsupportedEncodingException ex) {
-            Logger.getLogger(StringResourceJPanel.class.getName()).log(Level.SEVERE, null, ex);
+        String encoding = appSettings.getDefaultStringEncoding();
+        Codec defaultCodec = null;
+        List<Codec> codecList = Codec.getCodecs();
+        for( Codec acodec : codecList ){
+            encodingComboBox.addItem(acodec);
+            if( acodec.toString().equals(encoding))
+                defaultCodec = acodec;
+            
         }
+        
+        //Get encoding
+        encodingComboBox.setSelectedItem(defaultCodec);
     }
 }

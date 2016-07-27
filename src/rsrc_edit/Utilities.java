@@ -230,4 +230,22 @@ public class Utilities {
         return tempInt;
 
     }
+
+    //===============================================================
+    /**
+     * 
+     * @param unicodebytes
+     * @return 
+     */
+    public static byte[] unicodeToAscii(byte[] unicodebytes) {
+        byte[] retBytes = null;
+        if( unicodebytes.length % 2 == 0 ){
+            //Get every other byte
+            retBytes = new byte[unicodebytes.length / 2];            
+            for(int i = 0; i < retBytes.length; i++ ){
+                retBytes[i] = unicodebytes[i * 2];
+            }
+        }
+        return retBytes;
+    }
 }

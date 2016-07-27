@@ -9,6 +9,8 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import rsrc_edit.pe.DosHeader;
 import rsrc_edit.pe.NtHeader;
 import rsrc_edit.pe.ImageSectionHeader;
@@ -17,7 +19,14 @@ import rsrc_edit.resource.ResourceDirectoryTable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInput;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutput;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
@@ -27,6 +36,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
+import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
@@ -36,16 +46,17 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import rsrc_edit.pe.ImageDataDirectory;
+import rsrc_edit.settings.Settings;
+import rsrc_edit.settings.SettingsJDialog;
+import rsrc_edit.settings.SettingsJDialogListener;
 
 /**
  *
  * @author user
  */
-public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListener {
+public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListener, SettingsJDialogListener {
 
     private JFileChooser theFileChooser = null;
-    //private long resourceVitualAddr;
-    //private long rawResourceAddr;
     private final ResourceJTree mainJTree = new ResourceJTree();
     
     public static final int IMAGE_DIRECTORY_ENTRY_RESOURCE = 2;
@@ -53,6 +64,10 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
    
     public static final String RESOURCE_IMG_STR = "rsrc.png";
     private File userSelectedFile;
+    
+    //Savable settings
+    private Settings theSettings = null;
+     
     
       
     /**
@@ -64,6 +79,9 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
         
         //Set the icon
         setAppIconImage(RESOURCE_IMG_STR);
+        
+        //Center
+        setLocationRelativeTo(null);
     }
     
      //===============================================================
@@ -71,6 +89,8 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
      *  Initialize the panel components
      */
     private void initializeComponents() {
+        
+        theSettings = instantiateSettings();
         
         theFileChooser = new JFileChooser();
         theFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -125,7 +145,7 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
         fileMenu = new javax.swing.JMenu();
         loadMenuItem = new javax.swing.JMenuItem();
         exitMenuItem = new javax.swing.JMenuItem();
-        stringMapMenuItem = new javax.swing.JMenuItem();
+        settingsMenuItem = new javax.swing.JMenuItem();
         editMenu = new javax.swing.JMenu();        
         
         //Set preferred height
@@ -213,13 +233,13 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
 
         editMenu.setText("Edit");
         
-        stringMapMenuItem.setText("String Map");
-        stringMapMenuItem.addActionListener(new java.awt.event.ActionListener() {
+        settingsMenuItem.setText("Settings");
+        settingsMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                stringMapMenuItemActionPerformed(evt);
+                settingsMenuItemActionPerformed(evt);
             }            
         });
-        editMenu.add(stringMapMenuItem);
+        editMenu.add(settingsMenuItem);
         
         mainMenuBar.add(editMenu);
 
@@ -270,8 +290,9 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
      * 
      * @param evt 
      */
-    private void stringMapMenuItemActionPerformed(ActionEvent evt) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    private void settingsMenuItemActionPerformed(ActionEvent evt) {
+        SettingsJDialog settingsDialog = new SettingsJDialog( this, true);
+        settingsDialog.setVisible(true); // This blocks...(evt);
     }
 
     private void loadMenuItemActionPerformed(java.awt.event.ActionEvent evt) {                                           
@@ -322,7 +343,7 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
     // Variables declaration - do not modify             
     private javax.swing.JScrollPane dataScrollPane;
     private javax.swing.JMenuItem exitMenuItem;
-    private javax.swing.JMenuItem stringMapMenuItem;
+    private javax.swing.JMenuItem settingsMenuItem;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
@@ -462,7 +483,7 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
                 buf.flip();
                          
                 //Parse resource table
-                ResourceDirectoryTable mainTable = new ResourceDirectoryTable(buf, rawResourceAddr - resourceVitualAddr );
+                ResourceDirectoryTable mainTable = new ResourceDirectoryTable(buf, rawResourceAddr - resourceVitualAddr, 0 );
                 List<ResourceDataEntry> resourceList = mainTable.getResources();
                 
                  //Go get data
@@ -470,9 +491,6 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
                     
                     if( aRDS.data == null ){
                         try {
-
-                            //long offset = aRDS.DataVirtualAddr - resourceVitualAddr;
-                            //long rawRsrcAddr = offset + rawResourceAddr;
 
                             ByteBuffer aBB = ByteBuffer.allocate((int) aRDS.Size);
                             currentBinaryFileChannel.position(aRDS.DataVirtualAddr);
@@ -555,5 +573,102 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
             setIconImage( appIcon );
         }
     }    
+
+    //======================================================================
+    /**
+     * 
+     * @return 
+     */
+    @Override
+    public MainJFrame getParentJFrame() {
+        return this;
+    }
+
+    //======================================================================
+    /**
+     * 
+     * @return 
+     */
+    public Settings getSettings() {
+        return theSettings;
+    }
+    
+    //======================================================================
+    /**
+     * 
+     * @return 
+     */
+    private Settings instantiateSettings() {
+         
+        Settings localSettings = null;
+        InputStream file = null;
+        try{
+            //use buffering
+            File settingsFile = new File(Settings.SETTINGS_FILENAME);
+            if( settingsFile.exists() ){
+                file = new FileInputStream(settingsFile);
+                InputStream buffer = new BufferedInputStream(file);
+                ObjectInput input = new ObjectInputStream (buffer);
+                try{
+                    //deserialize the List
+                    localSettings = (Settings)input.readObject();
+
+                } catch (ClassNotFoundException ex) {
+                    Logger.getLogger(MainJFrame.class.getName()).log(Level.SEVERE, null, ex);
+                } finally{
+                    input.close();
+                }
+            }
+      
+        } catch (IOException ex) {
+            Logger.getLogger(MainJFrame.class.getName()).log(Level.SEVERE, null, ex);
+        } finally{
+            try {
+                
+                if( file != null )
+                    file.close();
+                
+            } catch (IOException ex) {
+                Logger.getLogger(MainJFrame.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        
+        //Create a new one
+        if( localSettings == null )
+            localSettings = new Settings();        
+    
+        return localSettings;
+    }
+    
+     //======================================================================
+    /**
+     * 
+     */
+    public void saveSettings() {
+         
+        OutputStream filestream = null;
+        try{
+            //use buffering
+            //serialize the List
+            //note the use of abstract base class references           
+            //use buffering
+            filestream = new FileOutputStream(Settings.SETTINGS_FILENAME);
+            OutputStream buffer = new BufferedOutputStream(filestream);
+            ObjectOutput output = new ObjectOutputStream(buffer);
+            output.writeObject(theSettings);
+            output.flush();
+            output.close();
+                  
+        } catch (IOException ex) {
+            Logger.getLogger(MainJFrame.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            if( filestream != null ){
+                try {
+                    filestream.close();
+                } catch (IOException ex) {
+                }
+            }
+        }
+    }
 
 }

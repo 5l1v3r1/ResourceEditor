@@ -18,26 +18,29 @@ public class ResourceDataEntry {
     public static final String NAMED = "Named";
     
     public long DataVirtualAddr;
+    public long Embedded_Write_Delta;
     public long Size; 
     public int CodePage; 
     public int Reserved; 
     public String Type = "Integer";      
     public Stack<Object> ID_Stack = new Stack<>();
-    
     public byte[] data = null;
+    
       
     //=========================================================================
     /**
      * 
      * @param passedBB 
      * @param delta 
+     * @param write_delta 
      */
-    public ResourceDataEntry( ByteBuffer passedBB, long delta ) {   
+    public ResourceDataEntry( ByteBuffer passedBB, long delta, long write_delta ) {   
         
         DataVirtualAddr = passedBB.getInt() + delta;
         Size = passedBB.getInt();
         CodePage = passedBB.getInt();
         Reserved = passedBB.getInt();
+        Embedded_Write_Delta = write_delta;
                         
     }
     
@@ -48,13 +51,15 @@ public class ResourceDataEntry {
      * @param size
      * @param stackId
      * @param passed_data
+     * @param write_delta
      */
-    public ResourceDataEntry( long addr, long size, Object stackId, byte[] passed_data ) {   
+    public ResourceDataEntry( long addr, long write_delta, long size, Object stackId, byte[] passed_data ) {   
         
         DataVirtualAddr = addr;
         Size = size;     
         ID_Stack.push(stackId);
         data = passed_data;
+        Embedded_Write_Delta = write_delta;
     }
     
     //=========================================================================

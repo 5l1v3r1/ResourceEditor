@@ -24,7 +24,7 @@ public class ResourceDirectoryTable {
     
     List<ResourceDirectoryEntry> DirectoryEntries = new ArrayList<>();
     
-    public ResourceDirectoryTable( ByteBuffer passedBB, long delta ) {   
+    public ResourceDirectoryTable( ByteBuffer passedBB, long delta, long write_delta ) {   
         
         Characteristics = passedBB.getInt() & 0xffffffff;
         TimeStamp = passedBB.getInt() & 0xffffffff;
@@ -43,7 +43,7 @@ public class ResourceDirectoryTable {
         //Loop through each entry
         for( ResourceDirectoryEntry anEntry : DirectoryEntries ){
             passedBB.rewind();
-            anEntry.populateLeafNodes(passedBB, delta);
+            anEntry.populateLeafNodes(passedBB, delta, write_delta);
         }
         
     }

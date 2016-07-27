@@ -79,7 +79,7 @@ public class ResourceController extends Controller implements Iconable, Ancestor
 
                     int actual_str_size = str_size - 10;
                     ResourceDataEntry aRDE = new ResourceDataEntry(passedRDE.DataVirtualAddr + data_off, 
-                            actual_str_size, id,aStrArr);
+                            theRDE.Embedded_Write_Delta, actual_str_size, id,aStrArr );
                     
                     aRDE.setType("String");
                     //Add the resource
@@ -129,7 +129,7 @@ public class ResourceController extends Controller implements Iconable, Ancestor
                     buf2.order(ByteOrder.LITTLE_ENDIAN); // or ByteOrder.BIG_ENDIAN
 
                     //Parse resource table
-                    ResourceDirectoryTable mainTable = new ResourceDirectoryTable(buf2, rawResourceAddr - resourceVitualAddr );
+                    ResourceDirectoryTable mainTable = new ResourceDirectoryTable(buf2, (rawResourceAddr - resourceVitualAddr), theRDE.DataVirtualAddr );
                     List<ResourceDataEntry> resourceList = mainTable.getResources();
 
                      //Go get data

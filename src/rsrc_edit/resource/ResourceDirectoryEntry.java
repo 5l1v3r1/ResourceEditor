@@ -40,7 +40,7 @@ public class ResourceDirectoryEntry {
      * 
      * @param passedBB 
      */
-    public void populateLeafNodes(ByteBuffer passedBB, long delta) {
+    public void populateLeafNodes(ByteBuffer passedBB, long delta, long write_delta) {
         
         if( Name_Int_Id < 0 ){
             passedBB.position( Name_Int_Id & 0x7fffffff );
@@ -61,14 +61,14 @@ public class ResourceDirectoryEntry {
             
             //Set position
             passedBB.position( Data_Entry_Or_SubDirectory & 0x7fffffff );
-            aRDT = new ResourceDirectoryTable(passedBB, delta);
+            aRDT = new ResourceDirectoryTable(passedBB, delta, write_delta);
             
             
         } else {
             
             //Create Resource data entry
             passedBB.position( Data_Entry_Or_SubDirectory & 0x7fffffff );
-            aRD = new ResourceDataEntry(passedBB, delta);
+            aRD = new ResourceDataEntry(passedBB, delta, write_delta);
             
         }
     }
