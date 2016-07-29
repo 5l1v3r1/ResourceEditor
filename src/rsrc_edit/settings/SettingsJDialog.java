@@ -11,7 +11,6 @@ import java.util.Enumeration;
 import javax.swing.AbstractButton;
 import javax.swing.JDialog;
 import rsrc_edit.MainJFrame;
-import rsrc_edit.codec.Codec;
 
 /**
  *

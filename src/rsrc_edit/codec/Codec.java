@@ -16,10 +16,12 @@ public class Codec {
 
     protected String name = "None";
     private static List<Codec> codecList = new ArrayList<>();
+    
+    public static final String BYTE_SPACER = "Byte Spacer";
+    public static final String XOR = "XOR";
    
     //========================================================================
     /*
-    
     */
     public static List<Codec> getCodecs() {
         
@@ -27,6 +29,7 @@ public class Codec {
         if( codecList.isEmpty() ){
             codecList.add( new Codec() );
             codecList.add( new ByteSpacer() );
+            codecList.add( new Xor() );
         }
         
         return codecList;

@@ -6,6 +6,8 @@
 package rsrc_edit;
 
 import java.awt.Cursor;
+import java.util.Arrays;
+import rsrc_edit.codec.Codec;
 import rsrc_edit.resource.ResourceDataEntry;
 
 /**
@@ -61,15 +63,13 @@ public class BinaryResourceJPanel extends javax.swing.JPanel {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(dataScrollPane)
-                        .addContainerGap())
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(0, 84, Short.MAX_VALUE)
+                    .addComponent(dataScrollPane)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addGap(68, 158, Short.MAX_VALUE)
                         .addComponent(getDataButton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(setDataButton)
-                        .addContainerGap(84, Short.MAX_VALUE))))
+                        .addComponent(setDataButton)))
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -87,6 +87,7 @@ public class BinaryResourceJPanel extends javax.swing.JPanel {
     private void getDataButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_getDataButtonActionPerformed
       
         setCursor( Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR) );
+        dataTextArea.setText("");
         
         ResourceDataEntry aRDE = theResourceController.getObject();
         String retStr = Utilities.byteArrayToHex( aRDE.data );
@@ -103,4 +104,21 @@ public class BinaryResourceJPanel extends javax.swing.JPanel {
     private javax.swing.JButton getDataButton;
     private javax.swing.JButton setDataButton;
     // End of variables declaration//GEN-END:variables
+
+    //========================================================================
+    /**
+     * 
+     * @param passedCodec 
+     */
+    public void encodingChanged( Codec passedCodec ) {    
+           
+        ResourceDataEntry aRDE =  theResourceController.getObject();
+        if( aRDE.data[0] != 0x0 || aRDE.data[1] != 0x0){
+            byte[] bytes = Arrays.copyOfRange(aRDE.data, 0, aRDE.data.length);
+            byte[] decoded = passedCodec.decode(bytes);
+            String retStr = Utilities.byteArrayToHex( decoded );
+            dataTextArea.setText( retStr );
+        } 
+    }   
+
 }

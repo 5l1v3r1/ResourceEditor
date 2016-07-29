@@ -16,7 +16,7 @@ public class ByteSpacer extends Codec{
      * 
      */
     public ByteSpacer() {
-        super("Byte Spacer");
+        super( BYTE_SPACER );
     }  
 
     //===================================================================

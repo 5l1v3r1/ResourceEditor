@@ -24,7 +24,7 @@ import rsrc_edit.settings.Settings;
  *
  * @author user
  */
-public class StringResourceJPanel extends javax.swing.JPanel {
+public class StringResourceJPanel extends javax.swing.JPanel implements Codecable {
 
     private final ResourceController theResourceController;
     private boolean labelChanged = false;
@@ -51,8 +51,6 @@ public class StringResourceJPanel extends javax.swing.JPanel {
         valueJTextField = new javax.swing.JTextField();
         saveButton = new javax.swing.JButton();
         jSeparator1 = new javax.swing.JSeparator();
-        encodingComboBox = new javax.swing.JComboBox<>();
-        encodingLabel = new javax.swing.JLabel();
         valueLabelField = new javax.swing.JTextField();
 
         saveButton.setText("Save");
@@ -61,15 +59,6 @@ public class StringResourceJPanel extends javax.swing.JPanel {
                 saveButtonActionPerformed(evt);
             }
         });
-
-        encodingComboBox.addItemListener(new java.awt.event.ItemListener() {
-            public void itemStateChanged(java.awt.event.ItemEvent evt) {
-                encodingComboBoxItemStateChanged(evt);
-            }
-        });
-
-        encodingLabel.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
-        encodingLabel.setText("Encoding:");
 
         valueLabelField.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         valueLabelField.setText("< Undefined >");
@@ -88,14 +77,9 @@ public class StringResourceJPanel extends javax.swing.JPanel {
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(encodingLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(encodingComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 84, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 153, Short.MAX_VALUE))
                     .addComponent(valueJTextField)
                     .addComponent(jSeparator1, javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(valueLabelField)
+                    .addComponent(valueLabelField, javax.swing.GroupLayout.DEFAULT_SIZE, 305, Short.MAX_VALUE)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
                         .addComponent(saveButton)))
@@ -110,11 +94,7 @@ public class StringResourceJPanel extends javax.swing.JPanel {
                 .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 2, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(14, 14, 14)
                 .addComponent(valueJTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(encodingComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(encodingLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 41, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 79, Short.MAX_VALUE)
                 .addComponent(saveButton)
                 .addContainerGap())
         );
@@ -139,8 +119,9 @@ public class StringResourceJPanel extends javax.swing.JPanel {
                 String userString = valueJTextField.getText();
                 
                 //Get selected encoding
-                Codec selectedCodec = (Codec)encodingComboBox.getSelectedItem();
-                byte[] value = selectedCodec.encode(userString.getBytes());
+                MainJFrame aFrame = theResourceController.getParentFrame();
+                Codec curCodec = aFrame.getSelectedCodec();
+                byte[] value = curCodec.encode(userString.getBytes());
                 userString = new String(value);               
                 
                 if( userString.length() > 0 ){
@@ -183,28 +164,8 @@ public class StringResourceJPanel extends javax.swing.JPanel {
         labelChanged = true;
     }//GEN-LAST:event_valueLabelFieldKeyReleased
 
-    private void encodingComboBoxItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_encodingComboBoxItemStateChanged
-        
-        if(evt.getStateChange() == ItemEvent.SELECTED){
-            
-           
-                Codec theCodec = (Codec) encodingComboBox.getSelectedItem();
-                ResourceDataEntry aRDE =  theResourceController.getObject();
-                if( aRDE.data[0] != 0x0 || aRDE.data[1] != 0x0){
-                    byte[] unicodebytes = Arrays.copyOfRange(aRDE.data, 0, aRDE.data.length - 8);
-                    byte[] asciibytes = Utilities.unicodeToAscii(unicodebytes);
-                    byte[] decoded = theCodec.decode(asciibytes);
-                    valueJTextField.setText(new String(decoded).trim());
-                }
-           
-            
-        }
-    }//GEN-LAST:event_encodingComboBoxItemStateChanged
-
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JComboBox<Codec> encodingComboBox;
-    private javax.swing.JLabel encodingLabel;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JButton saveButton;
     private javax.swing.JTextField valueJTextField;
@@ -222,17 +183,26 @@ public class StringResourceJPanel extends javax.swing.JPanel {
             valueLabelField.setText(actualStr);
         }
         
-        String encoding = appSettings.getDefaultStringEncoding();
-        Codec defaultCodec = null;
-        List<Codec> codecList = Codec.getCodecs();
-        for( Codec acodec : codecList ){
-            encodingComboBox.addItem(acodec);
-            if( acodec.toString().equals(encoding))
-                defaultCodec = acodec;
-            
-        }
+        //Set current encoding
+        Codec curCodec = aFrame.getSelectedCodec();
+        encodingChanged(curCodec);
         
-        //Get encoding
-        encodingComboBox.setSelectedItem(defaultCodec);
     }
+    
+    //========================================================================
+    /**
+     * 
+     * @param passedCodec 
+     */
+    @Override
+    public void encodingChanged( Codec passedCodec ) {    
+           
+        ResourceDataEntry aRDE =  theResourceController.getObject();
+        if( aRDE.data[0] != 0x0 || aRDE.data[1] != 0x0){
+            byte[] unicodebytes = Arrays.copyOfRange(aRDE.data, 0, aRDE.data.length - 8);
+            byte[] asciibytes = Utilities.unicodeToAscii(unicodebytes);
+            byte[] decoded = passedCodec.decode(asciibytes);
+            valueJTextField.setText(new String(decoded).trim());
+        } 
+    }       
 }
