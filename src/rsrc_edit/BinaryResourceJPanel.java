@@ -6,7 +6,18 @@
 package rsrc_edit;
 
 import java.awt.Cursor;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 import rsrc_edit.codec.Codec;
 import rsrc_edit.resource.ResourceDataEntry;
 
@@ -17,13 +28,16 @@ import rsrc_edit.resource.ResourceDataEntry;
 public class BinaryResourceJPanel extends javax.swing.JPanel {
 
     private final ResourceController theResourceController;
+    private JFileChooser theFileChooser = null;
+    
     /**
      * Creates new form BinaryResourceJPanel
      * @param passedController
      */
     public BinaryResourceJPanel( ResourceController passedController ) {
-        initComponents();
         theResourceController = passedController;
+        initComponents();
+        initializeComponents();
     }
 
     /**
@@ -48,6 +62,11 @@ public class BinaryResourceJPanel extends javax.swing.JPanel {
         });
 
         setDataButton.setText("Set Data");
+        setDataButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                setDataButtonActionPerformed(evt);
+            }
+        });
 
         dataTextArea.setEditable(false);
         dataTextArea.setColumns(20);
@@ -97,6 +116,112 @@ public class BinaryResourceJPanel extends javax.swing.JPanel {
         setCursor( null );
     }//GEN-LAST:event_getDataButtonActionPerformed
 
+    private void setDataButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_setDataButtonActionPerformed
+    
+        setCursor( Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR) );
+        File userSelectedFile = null;
+        int returnVal = theFileChooser.showDialog( this, "Select File(s)" ); //Show the dialog
+        switch( returnVal ) {
+
+            case JFileChooser.CANCEL_OPTION: //If the user canceled the selecting...
+            case JFileChooser.ERROR_OPTION: //If the dialog was dismissed or an error occurred...
+                break; //Do nothing
+
+            case JFileChooser.APPROVE_OPTION: //If the user approved the selection...
+                userSelectedFile = theFileChooser.getSelectedFile(); //Get the files the user selected
+                break;
+            default:
+                break;
+
+        }
+
+        //Open file and read it
+        if(userSelectedFile != null && userSelectedFile.exists()){
+            
+            ResourceDataEntry aRDE = theResourceController.getObject();
+            int file_size  = (int)userSelectedFile.length();
+            if( file_size > aRDE.Size ){
+                setCursor( null );
+                JOptionPane.showMessageDialog( this, "Length of the provided string is too long.","Error", JOptionPane.ERROR_MESSAGE );
+                return;    
+            }
+            
+            //Get file length
+            FileChannel currentBinaryFileChannel = null;
+            try {    
+                
+                //Open file
+                FileInputStream aFIS = new FileInputStream(userSelectedFile);
+                currentBinaryFileChannel = aFIS.getChannel();
+                
+                ByteBuffer aBB = ByteBuffer.allocate(file_size);
+                currentBinaryFileChannel.read(aBB);
+                aBB.flip();
+                
+                //Create new array
+                byte[] file_bytes = new byte[file_size];
+                aBB.get(file_bytes);
+                 
+                //Set the data
+                //Pad the buffer up to the available size
+                File binFile = theResourceController.getParentFrame().getLoadedFile();
+                if( binFile != null ){
+                    
+                    FileOutputStream aFOS = null;
+                    FileChannel outputBinaryFileChannel = null;
+
+                    //Get selected encoding
+                    MainJFrame aFrame = theResourceController.getParentFrame();
+                    Codec curCodec = aFrame.getSelectedCodec();
+                    byte[] encodedBytes = curCodec.encode( file_bytes );  
+                    
+                    if( encodedBytes.length <= aRDE.Size ){
+                    
+                        //Pad out the bytes
+                        byte[] writeBytes = Arrays.copyOf(encodedBytes, (int)aRDE.Size);
+                        aRDE.data = writeBytes;
+                        try { 
+
+                            //Open file
+                            aFOS = new FileOutputStream(binFile, true);
+                            outputBinaryFileChannel = aFOS.getChannel();
+
+                            //Write to the file
+                            ByteBuffer outBuf = ByteBuffer.wrap(writeBytes);
+                            outputBinaryFileChannel.write(outBuf, aRDE.DataVirtualAddr + aRDE.Embedded_Write_Delta);
+
+
+                        } catch (FileNotFoundException ex) {
+                            Logger.getLogger(StringResourceJPanel.class.getName()).log(Level.SEVERE, null, ex);
+                        } catch (IOException ex) {
+                            Logger.getLogger(StringResourceJPanel.class.getName()).log(Level.SEVERE, null, ex);
+                        } finally {
+                            
+                            try {
+                                if(outputBinaryFileChannel != null )
+                                    outputBinaryFileChannel.close();
+                            } catch (IOException ex) {
+                            }
+                        }
+                    } else {
+                        JOptionPane.showMessageDialog( this, "Length of the provided string is too long.","Error", JOptionPane.ERROR_MESSAGE );
+                    }
+                }
+            } catch (IOException ex) {
+                Logger.getLogger(BinaryResourceJPanel.class.getName()).log(Level.SEVERE, null, ex);
+            } finally {
+                try {
+                    if( currentBinaryFileChannel != null )
+                        currentBinaryFileChannel.close();
+                } catch (IOException ex) {
+                }
+            }
+            
+        }
+        
+        setCursor( null );
+    }//GEN-LAST:event_setDataButtonActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JScrollPane dataScrollPane;
@@ -120,5 +245,15 @@ public class BinaryResourceJPanel extends javax.swing.JPanel {
             dataTextArea.setText( retStr );
         } 
     }   
+
+    //========================================================================
+    /**
+     * 
+     */
+    private void initializeComponents() {
+        theFileChooser = new JFileChooser();
+        theFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        theFileChooser.setMultiSelectionEnabled( false ); 
+    }
 
 }

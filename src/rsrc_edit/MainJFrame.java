@@ -7,7 +7,6 @@ package rsrc_edit;
 
 import java.awt.Cursor;
 import java.awt.Image;
-import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -45,6 +44,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import rsrc_edit.codec.Codec;
+import rsrc_edit.codec.Xor;
 import rsrc_edit.pe.ImageDataDirectory;
 import rsrc_edit.settings.Settings;
 import rsrc_edit.settings.SettingsJDialog;
@@ -57,7 +57,7 @@ import rsrc_edit.settings.SettingsJDialogListener;
 public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListener, SettingsJDialogListener {
 
     private JFileChooser theFileChooser = null;
-    //private final ResourceJTree mainJTree = new ResourceJTree();
+    private final ResourceJTree mainJTree;
     
     public static final int IMAGE_DIRECTORY_ENTRY_RESOURCE = 2;
     public static Map<String, String> theResourceMap = new HashMap<>();
@@ -75,6 +75,7 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
      */
     public MainJFrame() {
         initComponents();
+        mainJTree = ( ResourceJTree )genJTree;
         initializeComponents();
         
         //Set the icon
@@ -161,7 +162,7 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
         jLabel4 = new javax.swing.JLabel();
         dataScrollPane = new javax.swing.JScrollPane();
         jScrollPane2 = new javax.swing.JScrollPane();
-        mainJTree = new ResourceJTree();
+        genJTree = new ResourceJTree();
         mainMenuBar = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         loadMenuItem = new javax.swing.JMenuItem();
@@ -205,6 +206,12 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
         xorKeyLabel.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         xorKeyLabel.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
         xorKeyLabel.setText("Key (Hex):");
+
+        xorKeyValue.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                xorKeyValueKeyReleased(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -251,8 +258,8 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
         jLabel4.setText("Data");
 
         javax.swing.tree.DefaultMutableTreeNode treeNode1 = new javax.swing.tree.DefaultMutableTreeNode("root");
-        mainJTree.setModel(new javax.swing.tree.DefaultTreeModel(treeNode1));
-        jScrollPane2.setViewportView(mainJTree);
+        genJTree.setModel(new javax.swing.tree.DefaultTreeModel(treeNode1));
+        jScrollPane2.setViewportView(genJTree);
 
         jMenu1.setText("File");
 
@@ -367,6 +374,16 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
         SettingsJDialog settingsDialog = new SettingsJDialog( this, true);
         settingsDialog.setVisible(true); // This blocks...(evt);
     }//GEN-LAST:event_settingsMenuActionPerformed
+
+    private void xorKeyValueKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_xorKeyValueKeyReleased
+        Codec selectedCodec = getSelectedCodec();
+        if( selectedCodec instanceof Xor ){
+            Xor xorCodec = (Xor)selectedCodec;
+            String curText = xorKeyValue.getText();
+            //Set the key
+            xorCodec.setKey(curText);
+        }
+    }//GEN-LAST:event_xorKeyValueKeyReleased
 	
     private void exitMenuItemActionPerformed(java.awt.event.ActionEvent evt) {                                           
         System.exit(0);
@@ -427,7 +444,7 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JMenuItem loadMenuItem;
-    private ResourceJTree mainJTree;
+    private javax.swing.JTree genJTree;
     private javax.swing.JMenuBar mainMenuBar;
     private javax.swing.JMenuItem settingsMenu;
     private javax.swing.JLabel sizeLabelVal;

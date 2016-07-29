@@ -10,12 +10,14 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JOptionPane;
 import rsrc_edit.codec.Codec;
 import rsrc_edit.resource.ResourceDataEntry;
 import rsrc_edit.settings.Settings;
@@ -49,16 +51,10 @@ public class StringResourceJPanel extends javax.swing.JPanel implements Codecabl
     private void initComponents() {
 
         valueJTextField = new javax.swing.JTextField();
-        saveButton = new javax.swing.JButton();
         jSeparator1 = new javax.swing.JSeparator();
         valueLabelField = new javax.swing.JTextField();
-
-        saveButton.setText("Save");
-        saveButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                saveButtonActionPerformed(evt);
-            }
-        });
+        getDataButton = new javax.swing.JButton();
+        setDataButton = new javax.swing.JButton();
 
         valueLabelField.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         valueLabelField.setText("< Undefined >");
@@ -70,19 +66,35 @@ public class StringResourceJPanel extends javax.swing.JPanel implements Codecabl
             }
         });
 
+        getDataButton.setText("View Data");
+        getDataButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                getDataButtonActionPerformed(evt);
+            }
+        });
+
+        setDataButton.setText("Set Data");
+        setDataButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                setDataButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+            .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(valueJTextField)
+                    .addComponent(valueJTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 366, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jSeparator1, javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(valueLabelField, javax.swing.GroupLayout.DEFAULT_SIZE, 305, Short.MAX_VALUE)
+                    .addComponent(valueLabelField)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(saveButton)))
+                        .addComponent(getDataButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(setDataButton)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -95,13 +107,23 @@ public class StringResourceJPanel extends javax.swing.JPanel implements Codecabl
                 .addGap(14, 14, 14)
                 .addComponent(valueJTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 79, Short.MAX_VALUE)
-                .addComponent(saveButton)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(getDataButton)
+                    .addComponent(setDataButton))
                 .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
 
-    private void saveButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveButtonActionPerformed
-        
+    private void valueLabelFieldKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_valueLabelFieldKeyReleased
+        labelChanged = true;
+    }//GEN-LAST:event_valueLabelFieldKeyReleased
+
+    private void getDataButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_getDataButtonActionPerformed
+        MainJFrame aFrame = theResourceController.getParentFrame();
+        encodingChanged(aFrame.getSelectedCodec());
+    }//GEN-LAST:event_getDataButtonActionPerformed
+
+    private void setDataButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_setDataButtonActionPerformed
         ResourceDataEntry aRDE = theResourceController.getObject();
         File binFile = theResourceController.getParentFrame().getLoadedFile();
         if( binFile != null ){
@@ -111,36 +133,56 @@ public class StringResourceJPanel extends javax.swing.JPanel implements Codecabl
             
             FileOutputStream aFOS = null;
             FileChannel currentBinaryFileChannel = null;
-            try {                
-                //Open file
-                aFOS = new FileOutputStream(binFile, true);
-                currentBinaryFileChannel = aFOS.getChannel();
-                
-                String userString = valueJTextField.getText();
-                
-                //Get selected encoding
-                MainJFrame aFrame = theResourceController.getParentFrame();
-                Codec curCodec = aFrame.getSelectedCodec();
-                byte[] value = curCodec.encode(userString.getBytes());
-                userString = new String(value);               
-                
-                if( userString.length() > 0 ){
-                    byte[] strBytes = userString.getBytes("UTF-16LE");
-                    strBytes = Arrays.copyOf(strBytes, availSpace);
-                    ByteBuffer aBB = ByteBuffer.wrap(strBytes);
-                    currentBinaryFileChannel.write(aBB, aRDE.DataVirtualAddr + aRDE.Embedded_Write_Delta);
-                }               
-                
-            } catch (FileNotFoundException ex) {
-                Logger.getLogger(StringResourceJPanel.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (IOException ex) {
-                Logger.getLogger(StringResourceJPanel.class.getName()).log(Level.SEVERE, null, ex);
-            } finally {
+                          
+
+            String userString = valueJTextField.getText();
+
+            //Get selected encoding
+            MainJFrame aFrame = theResourceController.getParentFrame();
+            Codec curCodec = aFrame.getSelectedCodec();
+            byte[] value = curCodec.encode(userString.getBytes());
+            userString = new String(value);               
+
+            if( userString.length() > 0 ){
+                byte[] strBytes;
                 try {
-                    currentBinaryFileChannel.close();
-                } catch (IOException ex) {
+                    strBytes = userString.getBytes("UTF-16LE");
+                } catch (UnsupportedEncodingException ex) {
+                    Logger.getLogger(StringResourceJPanel.class.getName()).log(Level.SEVERE, null, ex);
+                    return;
                 }
-            }
+                
+                if( strBytes.length > aRDE.Size ){
+                    JOptionPane.showMessageDialog( this, "Length of the provided string is too long.","Error", JOptionPane.ERROR_MESSAGE );
+                } else {
+
+                    //Pad the buffer up to the available size
+                    strBytes = Arrays.copyOf(strBytes, availSpace);
+                    //Copy to object data
+                    System.arraycopy(strBytes, 0, aRDE.data, 0, availSpace);
+                    try { 
+                        //Open file
+                        aFOS = new FileOutputStream(binFile, true);
+                        currentBinaryFileChannel = aFOS.getChannel();
+
+                        //Write to the file
+                        ByteBuffer aBB = ByteBuffer.wrap(strBytes);
+                        currentBinaryFileChannel.write(aBB, aRDE.DataVirtualAddr + aRDE.Embedded_Write_Delta);
+
+
+                    } catch (FileNotFoundException ex) {
+                        Logger.getLogger(StringResourceJPanel.class.getName()).log(Level.SEVERE, null, ex);
+                    } catch (IOException ex) {
+                        Logger.getLogger(StringResourceJPanel.class.getName()).log(Level.SEVERE, null, ex);
+                    } finally {
+                        try {
+                            if(currentBinaryFileChannel != null )
+                                currentBinaryFileChannel.close();
+                        } catch (IOException ex) {
+                        }
+                    }
+                }
+            }   
             
         }
         
@@ -158,16 +200,13 @@ public class StringResourceJPanel extends javax.swing.JPanel implements Codecabl
             theResourceController.getParentFrame().saveSettings();
             labelChanged = false;
         }
-    }//GEN-LAST:event_saveButtonActionPerformed
-
-    private void valueLabelFieldKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_valueLabelFieldKeyReleased
-        labelChanged = true;
-    }//GEN-LAST:event_valueLabelFieldKeyReleased
+    }//GEN-LAST:event_setDataButtonActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton getDataButton;
     private javax.swing.JSeparator jSeparator1;
-    private javax.swing.JButton saveButton;
+    private javax.swing.JButton setDataButton;
     private javax.swing.JTextField valueJTextField;
     private javax.swing.JTextField valueLabelField;
     // End of variables declaration//GEN-END:variables

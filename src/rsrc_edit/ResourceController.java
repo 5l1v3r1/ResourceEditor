@@ -90,7 +90,7 @@ public class ResourceController extends Controller implements Iconable, Ancestor
                 }
             }
             
-        } else if(theRDE.toString().equals("BIN")){
+        } else if(theRDE.getType().equals(ResourceDataEntry.NAMED)){
             
             //Check if the internal binary is a PE and parse it
             if( theRDE.data[0] == (byte)'M' && theRDE.data[1] == (byte)'Z' ){

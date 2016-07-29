@@ -56,22 +56,20 @@ public class Xor extends Codec{
      * @return 
      */
     @Override
-    public byte[] encode(byte[] passedBytes) {
-        byte[] retBytes = new byte[passedBytes.length * 2];
+    public byte[] encode(byte[] passedBytes ) {
         
-       
+        int key_len = key.length;
+
+	//XOR the data
+	for( int i = 0; i < passedBytes.length; i++ )
+            passedBytes[i] = (byte)(passedBytes[i] ^ key[i % key_len]);	
         
-        return retBytes;
+        return passedBytes;
     }
 
     @Override
-    public byte[] decode(byte[] passedBytes) {
-        
-        byte[] retBytes = new byte[passedBytes.length / 2];
-        
-       
-        
-        return retBytes;
+    public byte[] decode(byte[] passedBytes) {        
+        return encode(passedBytes);
     }
     
 }
