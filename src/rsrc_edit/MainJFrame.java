@@ -156,7 +156,7 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
         typeLabelVal = new javax.swing.JLabel();
         sizeLabelVal = new javax.swing.JLabel();
         encodingLabel = new javax.swing.JLabel();
-        encodingComboBox = new javax.swing.JComboBox<>();
+        encodingComboBox = new javax.swing.JComboBox<Codec>();
         xorKeyLabel = new javax.swing.JLabel();
         xorKeyValue = new javax.swing.JTextField();
         jLabel4 = new javax.swing.JLabel();
@@ -232,7 +232,7 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
                     .addComponent(xorKeyLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(xorKeyValue)
+                    .addComponent(xorKeyValue, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(sizeLabelVal, javax.swing.GroupLayout.PREFERRED_SIZE, 102, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap())
         );
@@ -436,6 +436,7 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
     private javax.swing.JComboBox<Codec> encodingComboBox;
     private javax.swing.JLabel encodingLabel;
     private javax.swing.JMenuItem exitMenuItem;
+    private javax.swing.JTree genJTree;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -444,7 +445,6 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JMenuItem loadMenuItem;
-    private javax.swing.JTree genJTree;
     private javax.swing.JMenuBar mainMenuBar;
     private javax.swing.JMenuItem settingsMenu;
     private javax.swing.JLabel sizeLabelVal;
@@ -462,7 +462,7 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
 
         setCursor( Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR) );
         try {
-
+            
             mainJTree.getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
             mainJTree.setScrollsOnExpand( true );
 

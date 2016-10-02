@@ -144,7 +144,7 @@
                   </Group>
                   <EmptySpace max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="0" max="-2" attributes="0">
-                      <Component id="xorKeyValue" max="32767" attributes="0"/>
+                      <Component id="xorKeyValue" min="-2" pref="180" max="-2" attributes="0"/>
                       <Component id="sizeLabelVal" min="-2" pref="102" max="-2" attributes="0"/>
                   </Group>
                   <EmptySpace max="-2" attributes="0"/>
@@ -264,7 +264,7 @@
 
       <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
       <SubComponents>
-        <Component class="javax.swing.JTree" name="mainJTree">
+        <Component class="javax.swing.JTree" name="genJTree">
           <Properties>
             <Property name="model" type="javax.swing.tree.TreeModel" editor="org.netbeans.modules.form.editors2.TreeModelEditor">
               <TreeModel code=""/>
