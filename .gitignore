@@ -2,3 +2,6 @@
 *.properties
 dist/README.TXT
 *.jar
+/nbproject/private/
+/dist/
+/build/
