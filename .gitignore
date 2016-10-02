@@ -4,4 +4,8 @@ dist/README.TXT
 *.jar
 /nbproject/private/
 /dist/
-/build/
+/build/*
+settings.dat
+build.xml
+manifest.mf
+/nbproject/
