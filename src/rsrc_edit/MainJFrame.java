@@ -92,7 +92,7 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
     public static final int IMAGE_DIRECTORY_ENTRY_RESOURCE = 2;
     public static Map<String, String> theResourceMap = new HashMap<>();
    
-    public static final String RESOURCE_IMG_STR = "rsrc.png";
+    public static final String RESOURCE_IMG_STR = "rsrc.png";    
     private File userSelectedFile;
     
     //Savable settings
@@ -199,6 +199,8 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
         exitMenuItem = new javax.swing.JMenuItem();
         jMenu2 = new javax.swing.JMenu();
         settingsMenu = new javax.swing.JMenuItem();
+        jMenu3 = new javax.swing.JMenu();
+        aboutMenuItem = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setResizable(false);
@@ -323,6 +325,18 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
 
         mainMenuBar.add(jMenu2);
 
+        jMenu3.setText("Help");
+
+        aboutMenuItem.setText("About");
+        aboutMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                aboutMenuItemActionPerformed(evt);
+            }
+        });
+        jMenu3.add(aboutMenuItem);
+
+        mainMenuBar.add(jMenu3);
+
         setJMenuBar(mainMenuBar);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -414,6 +428,12 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
             xorCodec.setKey(curText);
         }
     }//GEN-LAST:event_xorKeyValueKeyReleased
+
+    private void aboutMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_aboutMenuItemActionPerformed
+
+       AboutJDialog aboutDialog = new AboutJDialog( null );
+       aboutDialog.setVisible( true ); 
+    }//GEN-LAST:event_aboutMenuItemActionPerformed
 	
     private void exitMenuItemActionPerformed(java.awt.event.ActionEvent evt) {                                           
         System.exit(0);
@@ -462,6 +482,7 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JMenuItem aboutMenuItem;
     private javax.swing.JScrollPane dataScrollPane;
     private javax.swing.JComboBox<Codec> encodingComboBox;
     private javax.swing.JLabel encodingLabel;
@@ -472,6 +493,7 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
     private javax.swing.JLabel jLabel4;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
+    private javax.swing.JMenu jMenu3;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JMenuItem loadMenuItem;

@@ -89,7 +89,7 @@ public class Xor extends Codec{
     public byte[] encode(byte[] passedBytes ) {
         
         int key_len = key.length;
-
+      
 	//XOR the data
 	for( int i = 0; i < passedBytes.length; i++ )
             passedBytes[i] = (byte)(passedBytes[i] ^ key[i % key_len]);	

