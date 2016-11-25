@@ -186,7 +186,7 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
         typeLabelVal = new javax.swing.JLabel();
         sizeLabelVal = new javax.swing.JLabel();
         encodingLabel = new javax.swing.JLabel();
-        encodingComboBox = new javax.swing.JComboBox<Codec>();
+        encodingComboBox = new javax.swing.JComboBox<>();
         xorKeyLabel = new javax.swing.JLabel();
         xorKeyValue = new javax.swing.JTextField();
         jLabel4 = new javax.swing.JLabel();
@@ -203,7 +203,6 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
         aboutMenuItem = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setResizable(false);
 
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel1.setText("Resources");
@@ -229,6 +228,7 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
         encodingLabel.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         encodingLabel.setText("Encoding:");
 
+        encodingComboBox.setDoubleBuffered(true);
         encodingComboBox.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 encodingComboBoxItemStateChanged(evt);
@@ -383,9 +383,14 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
             if(theCodec.toString().equals(Codec.XOR)){
                 xorKeyLabel.setVisible(true);
                 xorKeyValue.setVisible(true);
+                //Resize appropriately
+                pack();
+                
             } else {
                 xorKeyLabel.setVisible(false);
                 xorKeyValue.setVisible(false);
+                //Resize appropriately
+                pack();
             }
             
             //Returns the last path element of the selection.
