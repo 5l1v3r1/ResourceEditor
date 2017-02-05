@@ -49,8 +49,11 @@ public class NtHeader {
     public int Signature;
     public ImageFileHeader FileHeader;
     public ImageOptionalHeader OptionalHeader;
+    public int fileHeaderOffset;
     
-    public NtHeader( ByteBuffer passedBB ) throws IOException{
+    public NtHeader( ByteBuffer passedBB, int passed_file_offset ) throws IOException{
+        
+        fileHeaderOffset = passed_file_offset;
         
         //Read all values from header
         Signature = passedBB.getInt();
@@ -90,6 +93,15 @@ public class NtHeader {
      */
     public long size() {
         return 4 + ImageFileHeader.IMAGE_FILE_HEADER_SIZE + OptionalHeader.size();
+    }
+
+    //=========================================================================
+    /**
+     * 
+     * @return 
+     */
+    public int getFileOffset() {
+        return fileHeaderOffset;
     }
     
 }

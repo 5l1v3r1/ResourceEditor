@@ -122,4 +122,14 @@ public class ImageOptionalHeader64 extends ImageOptionalHeader{
         return ret + 78;
     }
     
+    //=========================================================================
+    /**
+     * 
+     * @return 
+     */
+    @Override
+    public long getImageBase() {
+        return ImageBase;
+    }
+    
 }

@@ -135,7 +135,7 @@ public class ResourceController extends Controller implements Iconable, Ancestor
                     buf.position((int) theDosHeader.e_lfanew);
                                          
                     //Get the NT header
-                    NtHeader theNtHeader = new NtHeader(buf);
+                    NtHeader theNtHeader = new NtHeader(buf, theDosHeader.e_lfanew);
 
                     //Get Sections
                     HashMap<String, ImageSectionHeader> sectionHeaderMap = new HashMap<>();

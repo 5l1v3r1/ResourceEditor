@@ -1,6 +1,6 @@
 /*
 
-Copyright (C) 2013-2016, Securifera, Inc 
+Copyright (C) 2013-2014, Securifera, Inc 
 
 All rights reserved. 
 
@@ -30,25 +30,19 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ================================================================================
 
+Pwnbrew is provided under the 3-clause BSD license above.
+
 The copyright on this package is held by Securifera, Inc
 
 */
-
-/*
- * SettingsJDialogListener.java
- *
- */
-
-package rsrc_edit.settings;
-
-import rsrc_edit.MainJFrame;
+package rsrc_edit;
 
 /**
  *
- *  
+ * @author Securifera
  */
-public interface SettingsJDialogListener {
-    
-    public MainJFrame getParentJFrame();
+public interface SavableListener {
+
+    public void savableValueChanged();
 
 }

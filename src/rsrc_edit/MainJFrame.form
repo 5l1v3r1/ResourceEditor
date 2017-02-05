@@ -32,6 +32,14 @@
             <Property name="text" type="java.lang.String" value="Edit"/>
           </Properties>
           <SubComponents>
+            <MenuItem class="javax.swing.JMenuItem" name="peheadersItem">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="PE Headers"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="peheadersItemActionPerformed"/>
+              </Events>
+            </MenuItem>
             <MenuItem class="javax.swing.JMenuItem" name="settingsMenu">
               <Properties>
                 <Property name="text" type="java.lang.String" value="Settings"/>
