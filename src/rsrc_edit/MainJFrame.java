@@ -92,7 +92,7 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
     public static final int IMAGE_DIRECTORY_ENTRY_RESOURCE = 2;
     public static Map<String, String> theResourceMap = new HashMap<>();
    
-    public static final String RESOURCE_IMG_STR = "rsrc.png";
+    public static final String RESOURCE_IMG_STR = "rsrc.png";    
     private File userSelectedFile;
     
     //Savable settings
@@ -191,7 +191,7 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
         typeLabelVal = new javax.swing.JLabel();
         sizeLabelVal = new javax.swing.JLabel();
         encodingLabel = new javax.swing.JLabel();
-        encodingComboBox = new javax.swing.JComboBox<Codec>();
+        encodingComboBox = new javax.swing.JComboBox<>();
         xorKeyLabel = new javax.swing.JLabel();
         xorKeyValue = new javax.swing.JTextField();
         jLabel4 = new javax.swing.JLabel();
@@ -205,9 +205,10 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
         jMenu2 = new javax.swing.JMenu();
         peheadersItem = new javax.swing.JMenuItem();
         settingsMenu = new javax.swing.JMenuItem();
+        jMenu3 = new javax.swing.JMenu();
+        aboutMenuItem = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setResizable(false);
 
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel1.setText("Resources");
@@ -233,6 +234,7 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
         encodingLabel.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         encodingLabel.setText("Encoding:");
 
+        encodingComboBox.setDoubleBuffered(true);
         encodingComboBox.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 encodingComboBoxItemStateChanged(evt);
@@ -337,6 +339,18 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
 
         mainMenuBar.add(jMenu2);
 
+        jMenu3.setText("Help");
+
+        aboutMenuItem.setText("About");
+        aboutMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                aboutMenuItemActionPerformed(evt);
+            }
+        });
+        jMenu3.add(aboutMenuItem);
+
+        mainMenuBar.add(jMenu3);
+
         setJMenuBar(mainMenuBar);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -383,9 +397,14 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
             if(theCodec.toString().equals(Codec.XOR)){
                 xorKeyLabel.setVisible(true);
                 xorKeyValue.setVisible(true);
+                //Resize appropriately
+                pack();
+                
             } else {
                 xorKeyLabel.setVisible(false);
                 xorKeyValue.setVisible(false);
+                //Resize appropriately
+                pack();
             }
             
             //Returns the last path element of the selection.
@@ -433,6 +452,13 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
         PeHeadersJDialog headerDialog = new PeHeadersJDialog( this, true);
         headerDialog.setVisible(true); // This blocks...(evt);
     }//GEN-LAST:event_peheadersItemActionPerformed
+
+    private void aboutMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_aboutMenuItemActionPerformed
+
+       AboutJDialog aboutDialog = new AboutJDialog( null );
+       aboutDialog.setVisible( true ); 
+    }//GEN-LAST:event_aboutMenuItemActionPerformed
+
 	
     private void exitMenuItemActionPerformed(java.awt.event.ActionEvent evt) {                                           
         System.exit(0);
@@ -481,6 +507,7 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JMenuItem aboutMenuItem;
     private javax.swing.JScrollPane dataScrollPane;
     private javax.swing.JComboBox<Codec> encodingComboBox;
     private javax.swing.JLabel encodingLabel;
@@ -491,6 +518,7 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
     private javax.swing.JLabel jLabel4;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
+    private javax.swing.JMenu jMenu3;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JMenuItem loadMenuItem;

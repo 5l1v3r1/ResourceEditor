@@ -82,7 +82,7 @@ public class SettingsJDialog extends JDialog {
         xorKeyValue.setVisible(false);
         xorKeyLabel.setVisible(false);
         
-        encodingButtonGroup.add(base64Button);
+        //encodingButtonGroup.add(base64Button);
         encodingButtonGroup.add( asciiSpacerButton);
         encodingButtonGroup.add( noneButton);
         encodingButtonGroup.add( xorButton);
@@ -130,7 +130,6 @@ public class SettingsJDialog extends JDialog {
         saveOrOkJButton = new javax.swing.JButton();
         encodingPanel = new javax.swing.JPanel();
         asciiSpacerButton = new javax.swing.JRadioButton();
-        base64Button = new javax.swing.JRadioButton();
         noneButton = new javax.swing.JRadioButton();
         xorButton = new javax.swing.JRadioButton();
         xorKeyValue = new javax.swing.JTextField();
@@ -164,13 +163,6 @@ public class SettingsJDialog extends JDialog {
             }
         });
 
-        base64Button.setText("Base64");
-        base64Button.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                base64ButtonActionPerformed(evt);
-            }
-        });
-
         noneButton.setText("None");
         noneButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -196,12 +188,11 @@ public class SettingsJDialog extends JDialog {
                 .addGroup(encodingPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(encodingPanelLayout.createSequentialGroup()
                         .addComponent(xorButton)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 70, Short.MAX_VALUE)
                         .addComponent(xorKeyLabel)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(xorKeyValue, javax.swing.GroupLayout.PREFERRED_SIZE, 172, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(noneButton)
-                    .addComponent(base64Button)
                     .addComponent(asciiSpacerButton))
                 .addContainerGap())
         );
@@ -212,14 +203,12 @@ public class SettingsJDialog extends JDialog {
                 .addComponent(noneButton)
                 .addGap(3, 3, 3)
                 .addComponent(asciiSpacerButton)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(base64Button)
                 .addGap(3, 3, 3)
                 .addGroup(encodingPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(xorButton, javax.swing.GroupLayout.DEFAULT_SIZE, 25, Short.MAX_VALUE)
                     .addComponent(xorKeyValue, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(xorKeyLabel))
-                .addContainerGap(24, Short.MAX_VALUE))
+                .addGap(50, 50, 50))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -227,15 +216,14 @@ public class SettingsJDialog extends JDialog {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addContainerGap(268, Short.MAX_VALUE)
+                        .addGap(0, 258, Short.MAX_VALUE)
                         .addComponent(saveOrOkJButton, javax.swing.GroupLayout.PREFERRED_SIZE, 65, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(2, 2, 2)
                         .addComponent(cancelJButton))
-                    .addGroup(layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(encodingPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                    .addComponent(encodingPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -298,12 +286,6 @@ public class SettingsJDialog extends JDialog {
         xorKeyLabel.setVisible(false);
     }//GEN-LAST:event_asciiSpacerButtonActionPerformed
 
-    private void base64ButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_base64ButtonActionPerformed
-        setSaveButton(true);
-        xorKeyValue.setVisible(false);
-        xorKeyLabel.setVisible(false);
-    }//GEN-LAST:event_base64ButtonActionPerformed
-
     private void noneButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_noneButtonActionPerformed
         setSaveButton(true);
         xorKeyValue.setVisible(false);
@@ -319,7 +301,6 @@ public class SettingsJDialog extends JDialog {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JRadioButton asciiSpacerButton;
-    private javax.swing.JRadioButton base64Button;
     private javax.swing.JButton cancelJButton;
     private javax.swing.ButtonGroup encodingButtonGroup;
     private javax.swing.JPanel encodingPanel;
