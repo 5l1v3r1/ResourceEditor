@@ -33,73 +33,49 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 The copyright on this package is held by Securifera, Inc
 
 */
-package rsrc_edit.codec;
+package rsrc_edit.resource;
+
+import java.io.Serializable;
 
 /**
  *
  * @author user
  */
-public class Xor extends Codec{
+public class ResourceString  implements Serializable {
     
-    public byte[] key = null;
+    private static final long serialVersionUID = 1L;
 
-    //===================================================================
-    /**
-     * 
-     */
-    public Xor() {
-        super(XOR);
+    private String name;
+    private String value;
+    private String encoding;
+    
+    public ResourceString( String passedName ) {
+        name = passedName;        
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String passedName) {
+        name = passedName;
     }  
 
-    //===================================================================
-    /**
-     * 
-     * @return 
-     */
-    public byte[] getKey() {
-        return key;
+    public String getValue() {
+        return value;
     }
-
-    //===================================================================
-    /**
-     * 
-     * @param passedHexStr  
-     */
-    public void setKey(String passedHexStr ) {
-        
-        String s = passedHexStr.replace("0x", "");
-        int len = s.length();
-        byte[] data = new byte[len / 2];
-        for (int i = 0; i < len; i += 2) {
-            data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
-                                 + Character.digit(s.charAt(i+1), 16));
-        }        
-        
-        key = data;
-    }
-
     
-    //===================================================================
-    /**
-     * 
-     * @param passedBytes
-     * @return 
-     */
-    @Override
-    public byte[] encode(byte[] passedBytes ) {
-        
-        int key_len = key.length;
-      
-	//XOR the data
-	for( int i = 0; i < passedBytes.length; i++ )
-            passedBytes[i] = (byte)(passedBytes[i] ^ key[i % key_len]);	
-        
-        return passedBytes;
+    public void setValue( String passedValue ) {
+        value = passedValue;
     }
-
-    @Override
-    public byte[] decode(byte[] passedBytes) {        
-        return encode(passedBytes);
+    
+    public String getEncoding() {
+        return encoding;
     }
+    
+    public void setEncoding( String passedEncoding ) {
+        encoding = passedEncoding;
+    }
+    
     
 }

@@ -35,17 +35,25 @@ The copyright on this package is held by Securifera, Inc
 */
 package rsrc_edit;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Icon;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import static rsrc_edit.MainJFrame.IMAGE_DIRECTORY_ENTRY_RESOURCE;
+import rsrc_edit.codec.Codec;
 import rsrc_edit.pe.DosHeader;
 import rsrc_edit.pe.ImageDataDirectory;
 import rsrc_edit.pe.ImageSectionHeader;
@@ -258,6 +266,74 @@ public class ResourceController extends Controller implements Iconable, Ancestor
      */
     public MainJFrame getParentFrame() {
         return parentFrame;
+    }
+
+    //=======================================================================
+    /**
+     * 
+     * @param passedString
+     */
+    public void saveString( String passedString ) {
+        
+        File binFile = getParentFrame().getLoadedFile();
+        if( binFile != null ){
+            
+            //Don't count the string size and id fields
+            ResourceDataEntry aRDE = getObject();
+            int availSpace = (int) (aRDE.Size);
+            
+            FileOutputStream aFOS = null;
+            FileChannel currentBinaryFileChannel = null;
+                          
+
+            //Get selected encoding
+            MainJFrame aFrame = getParentFrame();
+            Codec curCodec = aFrame.getSelectedCodec();
+            byte[] value = curCodec.encode(passedString.getBytes());
+            passedString = new String(value);               
+
+            if( passedString.length() > 0 ){
+                byte[] strBytes;
+                try {
+                    strBytes = passedString.getBytes("UTF-16LE");
+                } catch (UnsupportedEncodingException ex) {
+                    Logger.getLogger(StringResourceJPanel.class.getName()).log(Level.SEVERE, null, ex);
+                    return;
+                }
+                
+                if( strBytes.length > aRDE.Size ){
+                    JOptionPane.showMessageDialog( getParentFrame(), "Length of the provided string is too long.","Error", JOptionPane.ERROR_MESSAGE );
+                } else {
+
+                    //Pad the buffer up to the available size
+                    strBytes = Arrays.copyOf(strBytes, availSpace);
+                    //Copy to object data
+                    System.arraycopy(strBytes, 0, aRDE.data, 0, availSpace);
+                    try { 
+                        //Open file
+                        aFOS = new FileOutputStream(binFile, true);
+                        currentBinaryFileChannel = aFOS.getChannel();
+
+                        //Write to the file
+                        ByteBuffer aBB = ByteBuffer.wrap(strBytes);
+                        currentBinaryFileChannel.write(aBB, aRDE.DataVirtualAddr + aRDE.Embedded_Write_Delta);
+
+
+                    } catch (FileNotFoundException ex) {
+                        Logger.getLogger(StringResourceJPanel.class.getName()).log(Level.SEVERE, null, ex);
+                    } catch (IOException ex) {
+                        Logger.getLogger(StringResourceJPanel.class.getName()).log(Level.SEVERE, null, ex);
+                    } finally {
+                        try {
+                            if(currentBinaryFileChannel != null )
+                                currentBinaryFileChannel.close();
+                        } catch (IOException ex) {
+                        }
+                    }
+                }
+            }   
+            
+        }
     }
     
 }

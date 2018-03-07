@@ -38,6 +38,7 @@ package rsrc_edit.settings;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+import rsrc_edit.resource.ResourceString;
 
 /**
  *
@@ -45,8 +46,9 @@ import java.util.Map;
  */
 public class Settings implements Serializable{
     
+    private static final long serialVersionUID = 1L;
     public String encoding = "None";
-    public final Map<String, String> ID_STRING_MAP = new HashMap<>();
+    public final Map<String, ResourceString> ID_STRING_MAP = new HashMap<>();
     public static final String SETTINGS_FILENAME = "settings.dat";
     
     //====================================================================
@@ -54,7 +56,7 @@ public class Settings implements Serializable{
      * 
      */
     public Settings(){
-        populateIdStringMap();
+//        populateIdStringMap();
     }
     
     //====================================================================
@@ -62,27 +64,33 @@ public class Settings implements Serializable{
      * 
      */    
     private void populateIdStringMap(){
-        ID_STRING_MAP.put("0x2fc6b91a", "Watchdog Host File Path");
-        ID_STRING_MAP.put("0x1117294c", "Payload Host File Path");
-        ID_STRING_MAP.put("0x2226292c", "JVM Path");
-        ID_STRING_MAP.put("0x1a621151", "Service Name");
-        ID_STRING_MAP.put("0x14541541", "Service Description");
-        ID_STRING_MAP.put("0x13251438", "Alternate Data Stream Host File Path");
-        ID_STRING_MAP.put("0x16231721", "Registry Persistence Key Name");
+        ID_STRING_MAP.put("0x2fc6b91a", new ResourceString("Watchdog Host File Path"));
+        ID_STRING_MAP.put("0x1117294c", new ResourceString("Payload Host File Path"));
+        ID_STRING_MAP.put("0x2226292c", new ResourceString("JVM Path"));
+        ID_STRING_MAP.put("0x1a621151", new ResourceString("Service Name"));
+        ID_STRING_MAP.put("0x14541541", new ResourceString("Service Description"));
+        ID_STRING_MAP.put("0x13251438", new ResourceString("Alternate Data Stream Host File Path"));
+        ID_STRING_MAP.put("0x16231721", new ResourceString("Registry Persistence Key Name"));
     } 
     
     //====================================================================
     /**
      * 
-     * @param passedStr
+     * @param passedId
      * @return 
      */
-    public String getStringForId( String passedStr ){
-        String retVal;
+    public String getIdDescription( String passedId ){
+        
+        String name = "< Undefined >";
+        ResourceString retVal;
         synchronized(ID_STRING_MAP){
-            retVal = ID_STRING_MAP.get(passedStr);
-        }        
-        return retVal;
+            retVal = ID_STRING_MAP.get(passedId);
+        }    
+        
+        if(retVal != null )
+            name = retVal.getName();
+        
+        return name;
     }
 
     //====================================================================
@@ -92,8 +100,20 @@ public class Settings implements Serializable{
      * @param labelVal 
      */
     public void setStringForId(String stringId, String labelVal) {
+        
+        ResourceString retVal;
         synchronized(ID_STRING_MAP){
-            ID_STRING_MAP.put( stringId, labelVal );
+            retVal = ID_STRING_MAP.get(stringId);
+        }  
+        
+        //Create or set
+        if( retVal == null){
+            retVal = new ResourceString(labelVal);
+            synchronized(ID_STRING_MAP){
+                ID_STRING_MAP.put( stringId, retVal );
+            }
+        } else {
+            retVal.setName(labelVal);
         }
     }
 
@@ -113,6 +133,83 @@ public class Settings implements Serializable{
      */
     public void setDefaultStringEncoding(String passedEnc ) {
         encoding = passedEnc;
+    }
+
+    //====================================================================
+    /**
+     * 
+     * @param stringId
+     * @param strVal 
+     */
+    public void setIdValue(String stringId, String strVal) {
+        ResourceString resStr;
+        synchronized(ID_STRING_MAP){
+            resStr = ID_STRING_MAP.get(stringId);
+        }  
+        //Set the value
+        if( resStr != null ){
+            resStr.setValue(strVal);
+        }
+    }
+    
+    //====================================================================
+    /**
+     * 
+     * @param stringId 
+     * @return  
+     */
+    public String getIdValue(String stringId) {
+        
+        String retStr = "";
+        ResourceString resStr;
+        synchronized(ID_STRING_MAP){
+            resStr = ID_STRING_MAP.get(stringId);
+        }  
+        //Set the value
+        if( resStr != null ){
+            retStr = resStr.getValue();
+        }
+        return retStr;
+    }
+
+    //====================================================================
+    /**
+     * 
+     * @param stringId
+     * @param name 
+     */
+    public void setIdCodecName(String stringId, String name) {
+        
+        ResourceString resStr;
+        synchronized(ID_STRING_MAP){
+            resStr = ID_STRING_MAP.get(stringId);
+        }  
+        
+        //Set the encoding
+        if( resStr != null )
+            resStr.setEncoding(name);
+        
+    }
+
+    //====================================================================
+    /**
+     * 
+     * @param stringId
+     * @return 
+     */
+    public String getIdCodecName(String stringId) {
+        String retStr = "";
+        ResourceString resStr;
+        synchronized(ID_STRING_MAP){
+            resStr = ID_STRING_MAP.get(stringId);
+        }
+        
+        //Get the encoding string
+        if( resStr != null )
+            retStr = resStr.getEncoding();
+        
+        return retStr;
+        
     }
     
 }

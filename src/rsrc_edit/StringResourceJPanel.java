@@ -36,17 +36,7 @@ The copyright on this package is held by Securifera, Inc
 
 package rsrc_edit;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.util.Arrays;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.swing.JOptionPane;
 import rsrc_edit.codec.Codec;
 import rsrc_edit.resource.ResourceDataEntry;
 import rsrc_edit.settings.Settings;
@@ -153,82 +143,31 @@ public class StringResourceJPanel extends javax.swing.JPanel implements Codecabl
     }//GEN-LAST:event_getDataButtonActionPerformed
 
     private void setDataButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_setDataButtonActionPerformed
-        ResourceDataEntry aRDE = theResourceController.getObject();
-        File binFile = theResourceController.getParentFrame().getLoadedFile();
-        if( binFile != null ){
-            
-            //Don't count the string size and id fields
-            int availSpace = (int) (aRDE.Size);
-            
-            FileOutputStream aFOS = null;
-            FileChannel currentBinaryFileChannel = null;
-                          
-
-            String userString = valueJTextField.getText();
-
-            //Get selected encoding
-            MainJFrame aFrame = theResourceController.getParentFrame();
-            Codec curCodec = aFrame.getSelectedCodec();
-            byte[] value = curCodec.encode(userString.getBytes());
-            userString = new String(value);               
-
-            if( userString.length() > 0 ){
-                byte[] strBytes;
-                try {
-                    strBytes = userString.getBytes("UTF-16LE");
-                } catch (UnsupportedEncodingException ex) {
-                    Logger.getLogger(StringResourceJPanel.class.getName()).log(Level.SEVERE, null, ex);
-                    return;
-                }
                 
-                if( strBytes.length > aRDE.Size ){
-                    JOptionPane.showMessageDialog( this, "Length of the provided string is too long.","Error", JOptionPane.ERROR_MESSAGE );
-                } else {
-
-                    //Pad the buffer up to the available size
-                    strBytes = Arrays.copyOf(strBytes, availSpace);
-                    //Copy to object data
-                    System.arraycopy(strBytes, 0, aRDE.data, 0, availSpace);
-                    try { 
-                        //Open file
-                        aFOS = new FileOutputStream(binFile, true);
-                        currentBinaryFileChannel = aFOS.getChannel();
-
-                        //Write to the file
-                        ByteBuffer aBB = ByteBuffer.wrap(strBytes);
-                        currentBinaryFileChannel.write(aBB, aRDE.DataVirtualAddr + aRDE.Embedded_Write_Delta);
-
-
-                    } catch (FileNotFoundException ex) {
-                        Logger.getLogger(StringResourceJPanel.class.getName()).log(Level.SEVERE, null, ex);
-                    } catch (IOException ex) {
-                        Logger.getLogger(StringResourceJPanel.class.getName()).log(Level.SEVERE, null, ex);
-                    } finally {
-                        try {
-                            if(currentBinaryFileChannel != null )
-                                currentBinaryFileChannel.close();
-                        } catch (IOException ex) {
-                        }
-                    }
-                }
-            }   
-            
-        }
+        String userString = valueJTextField.getText();
+        theResourceController.saveString(userString);        
         
         //Change the value for the label
+        ResourceDataEntry aRDE = theResourceController.getObject();
+        String stringId = aRDE.toString();
+        Settings theSettings = theResourceController.getParentFrame().getSettings();
         if( labelChanged ){            
             //Get the label value
             String labelVal = valueLabelField.getText();
-            String stringId = aRDE.toString();
-            
             //Add to settings
-            Settings theSettings = theResourceController.getParentFrame().getSettings();
             theSettings.setStringForId(stringId, labelVal);
-            
-            //Save
-            theResourceController.getParentFrame().saveSettings();
             labelChanged = false;
         }
+        
+        //Set value for settings
+        String strVal = valueJTextField.getText();
+        theSettings.setIdValue(stringId, strVal);
+        
+        //Set codec name
+        MainJFrame aFrame = theResourceController.getParentFrame();
+        Codec curCodec = aFrame.getSelectedCodec();
+        theSettings.setIdCodecName(stringId, curCodec.getName());        
+        
     }//GEN-LAST:event_setDataButtonActionPerformed
 
 
@@ -246,7 +185,7 @@ public class StringResourceJPanel extends javax.swing.JPanel implements Codecabl
         Settings appSettings = aFrame.getSettings();
         
         String idStr = theResourceController.toString();
-        String actualStr = appSettings.getStringForId(idStr);
+        String actualStr = appSettings.getIdDescription(idStr);
         if( actualStr != null ){
             valueLabelField.setText(actualStr);
         }
@@ -254,6 +193,33 @@ public class StringResourceJPanel extends javax.swing.JPanel implements Codecabl
         //Set current encoding
         Codec curCodec = aFrame.getSelectedCodec();
         encodingChanged(curCodec);
+        
+    }
+    
+    //========================================================================
+    /**
+     * 
+     */
+    public void refresh(){
+        
+        MainJFrame aFrame = theResourceController.getParentFrame();
+        Settings appSettings = aFrame.getSettings();
+        
+        String idStr = theResourceController.toString();
+        String actualStr = appSettings.getIdDescription(idStr);
+        if( actualStr != null )
+            valueLabelField.setText(actualStr);
+        
+        actualStr = appSettings.getIdCodecName(idStr);
+        if( actualStr != null ){
+            Codec aCodec = Codec.getCodec(actualStr);
+            if( aCodec != null)
+                aFrame.setSelectedCodec(aCodec);            
+        }
+                
+        actualStr = appSettings.getIdValue(idStr);
+        if( actualStr != null )
+            valueJTextField.setText(actualStr);        
         
     }
     
@@ -271,6 +237,8 @@ public class StringResourceJPanel extends javax.swing.JPanel implements Codecabl
             byte[] asciibytes = Utilities.unicodeToAscii(unicodebytes);
             byte[] decoded = passedCodec.decode(asciibytes);
             valueJTextField.setText(new String(decoded).trim());
-        } 
+        } else {
+            valueJTextField.setText("");
+        }
     }       
 }

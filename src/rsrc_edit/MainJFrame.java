@@ -66,6 +66,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.event.TreeSelectionEvent;
@@ -77,7 +78,6 @@ import rsrc_edit.codec.Codec;
 import rsrc_edit.codec.Xor;
 import rsrc_edit.pe.ImageDataDirectory;
 import rsrc_edit.settings.Settings;
-import rsrc_edit.settings.SettingsJDialog;
 import rsrc_edit.settings.SettingsJDialogListener;
 
 /**
@@ -194,12 +194,13 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
         jScrollPane2 = new javax.swing.JScrollPane();
         genJTree = new ResourceJTree();
         mainMenuBar = new javax.swing.JMenuBar();
-        jMenu1 = new javax.swing.JMenu();
+        fileMenu = new javax.swing.JMenu();
         loadMenuItem = new javax.swing.JMenuItem();
         exitMenuItem = new javax.swing.JMenuItem();
-        jMenu2 = new javax.swing.JMenu();
-        settingsMenu = new javax.swing.JMenuItem();
-        jMenu3 = new javax.swing.JMenu();
+        settingsMenu = new javax.swing.JMenu();
+        loadSettings = new javax.swing.JMenuItem();
+        saveSettings = new javax.swing.JMenuItem();
+        helpMenu = new javax.swing.JMenu();
         aboutMenuItem = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -293,7 +294,7 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
         genJTree.setModel(new javax.swing.tree.DefaultTreeModel(treeNode1));
         jScrollPane2.setViewportView(genJTree);
 
-        jMenu1.setText("File");
+        fileMenu.setText("File");
 
         loadMenuItem.setText("Load Binary");
         loadMenuItem.addActionListener(new java.awt.event.ActionListener() {
@@ -301,7 +302,7 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
                 loadMenuItemActionPerformed(evt);
             }
         });
-        jMenu1.add(loadMenuItem);
+        fileMenu.add(loadMenuItem);
 
         exitMenuItem.setText("Exit");
         exitMenuItem.addActionListener(new java.awt.event.ActionListener() {
@@ -309,23 +310,31 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
                 exitMenuItemActionPerformed(evt);
             }
         });
-        jMenu1.add(exitMenuItem);
+        fileMenu.add(exitMenuItem);
 
-        mainMenuBar.add(jMenu1);
-
-        jMenu2.setText("Edit");
+        mainMenuBar.add(fileMenu);
 
         settingsMenu.setText("Settings");
-        settingsMenu.addActionListener(new java.awt.event.ActionListener() {
+
+        loadSettings.setText("Load");
+        loadSettings.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                settingsMenuActionPerformed(evt);
+                loadSettingsActionPerformed(evt);
             }
         });
-        jMenu2.add(settingsMenu);
+        settingsMenu.add(loadSettings);
 
-        mainMenuBar.add(jMenu2);
+        saveSettings.setText("Save");
+        saveSettings.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                saveSettingsActionPerformed(evt);
+            }
+        });
+        settingsMenu.add(saveSettings);
 
-        jMenu3.setText("Help");
+        mainMenuBar.add(settingsMenu);
+
+        helpMenu.setText("Help");
 
         aboutMenuItem.setText("About");
         aboutMenuItem.addActionListener(new java.awt.event.ActionListener() {
@@ -333,9 +342,9 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
                 aboutMenuItemActionPerformed(evt);
             }
         });
-        jMenu3.add(aboutMenuItem);
+        helpMenu.add(aboutMenuItem);
 
-        mainMenuBar.add(jMenu3);
+        mainMenuBar.add(helpMenu);
 
         setJMenuBar(mainMenuBar);
 
@@ -419,10 +428,11 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
         loadBinary();
     }//GEN-LAST:event_loadMenuItemActionPerformed
 
-    private void settingsMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_settingsMenuActionPerformed
-        SettingsJDialog settingsDialog = new SettingsJDialog( this, true);
-        settingsDialog.setVisible(true); // This blocks...(evt);
-    }//GEN-LAST:event_settingsMenuActionPerformed
+    private void loadSettingsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loadSettingsActionPerformed
+//        SettingsJDialog settingsDialog = new SettingsJDialog( this, true);
+//        settingsDialog.setVisible(true); // This blocks...(evt);
+        loadSettings();
+    }//GEN-LAST:event_loadSettingsActionPerformed
 
     private void xorKeyValueKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_xorKeyValueKeyReleased
         Codec selectedCodec = getSelectedCodec();
@@ -436,9 +446,13 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
 
     private void aboutMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_aboutMenuItemActionPerformed
 
-       AboutJDialog aboutDialog = new AboutJDialog( null );
-       aboutDialog.setVisible( true ); 
+        AboutJDialog aboutDialog = new AboutJDialog( null );
+        aboutDialog.setVisible( true ); 
     }//GEN-LAST:event_aboutMenuItemActionPerformed
+
+    private void saveSettingsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveSettingsActionPerformed
+        saveSettings();
+    }//GEN-LAST:event_saveSettingsActionPerformed
 	
     private void exitMenuItemActionPerformed(java.awt.event.ActionEvent evt) {                                           
         System.exit(0);
@@ -492,18 +506,19 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
     private javax.swing.JComboBox<Codec> encodingComboBox;
     private javax.swing.JLabel encodingLabel;
     private javax.swing.JMenuItem exitMenuItem;
+    private javax.swing.JMenu fileMenu;
     private javax.swing.JTree genJTree;
+    private javax.swing.JMenu helpMenu;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
-    private javax.swing.JMenu jMenu1;
-    private javax.swing.JMenu jMenu2;
-    private javax.swing.JMenu jMenu3;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JMenuItem loadMenuItem;
+    private javax.swing.JMenuItem loadSettings;
     private javax.swing.JMenuBar mainMenuBar;
-    private javax.swing.JMenuItem settingsMenu;
+    private javax.swing.JMenuItem saveSettings;
+    private javax.swing.JMenu settingsMenu;
     private javax.swing.JLabel sizeLabelVal;
     private javax.swing.JLabel typeLabel;
     private javax.swing.JLabel typeLabelVal;
@@ -563,6 +578,73 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
      */
     public File getLoadedFile(){
         return userSelectedFile;
+    }
+    
+      //Load binary from disk
+    private void loadSettings() {
+        
+        File loadFile = null;
+        int returnVal = theFileChooser.showDialog( this, "Select File(s)" ); //Show the dialog
+        switch( returnVal ) {
+
+          case JFileChooser.CANCEL_OPTION: //If the user canceled the selecting...
+          case JFileChooser.ERROR_OPTION: //If the dialog was dismissed or an error occurred...
+            break; //Do nothing
+
+          case JFileChooser.APPROVE_OPTION: //If the user approved the selection...
+            loadFile = theFileChooser.getSelectedFile(); //Get the files the user selected
+            break;
+          default:
+            break;
+
+        }
+
+        //Open file and read it
+        if(loadFile != null){            
+            InputStream file = null;
+            try{
+                //use buffering
+                if( loadFile.exists() ){
+                    file = new FileInputStream(loadFile);
+                    InputStream buffer = new BufferedInputStream(file);
+                    ObjectInput input = new ObjectInputStream (buffer);
+                    try{
+                        //deserialize the List
+                        theSettings = (Settings)input.readObject();
+
+                    } catch (ClassNotFoundException ex) {
+                        Logger.getLogger(MainJFrame.class.getName()).log(Level.SEVERE, null, ex);
+                    } finally{
+                        input.close();
+                    }
+                    
+                    //Refresh panel
+                    final TreePath aPath = mainJTree.getSelectionPath();
+                    if( aPath != null )
+                    SwingUtilities.invokeLater(new Runnable(){
+                        @Override
+                        public void run() {
+                            mainJTree.setSelectionPath(null);
+                            mainJTree.setSelectionPath(aPath);
+                        }
+                    
+                    });
+                    
+                }
+
+            } catch (IOException ex) {
+                Logger.getLogger(MainJFrame.class.getName()).log(Level.SEVERE, null, ex);
+            } finally{
+                try {
+
+                    if( file != null )
+                        file.close();
+
+                } catch (IOException ex) {
+                    Logger.getLogger(MainJFrame.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }
     }
     
     //Load binary from disk
@@ -704,6 +786,9 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
                 //Set the panel
                 JPanel objPanel = selectedObject.getRootPanel();
                 if( objPanel != null )
+                    if( objPanel instanceof StringResourceJPanel){
+                        ((StringResourceJPanel)objPanel).refresh();
+                    }
                     dataScrollPane.setViewportView(objPanel);
 
                 setCursor( null );
@@ -752,76 +837,61 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
      */
     private Settings instantiateSettings() {
          
-        Settings localSettings = null;
-        InputStream file = null;
-        try{
-            //use buffering
-            File settingsFile = new File(Settings.SETTINGS_FILENAME);
-            if( settingsFile.exists() ){
-                file = new FileInputStream(settingsFile);
-                InputStream buffer = new BufferedInputStream(file);
-                ObjectInput input = new ObjectInputStream (buffer);
-                try{
-                    //deserialize the List
-                    localSettings = (Settings)input.readObject();
-
-                } catch (ClassNotFoundException ex) {
-                    Logger.getLogger(MainJFrame.class.getName()).log(Level.SEVERE, null, ex);
-                } finally{
-                    input.close();
-                }
-            }
-      
-        } catch (IOException ex) {
-            Logger.getLogger(MainJFrame.class.getName()).log(Level.SEVERE, null, ex);
-        } finally{
-            try {
-                
-                if( file != null )
-                    file.close();
-                
-            } catch (IOException ex) {
-                Logger.getLogger(MainJFrame.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-        
-        //Create a new one
-        if( localSettings == null )
-            localSettings = new Settings();        
-    
+        Settings localSettings = new Settings();   
         return localSettings;
     }
     
-     //======================================================================
+    //======================================================================
     /**
      * 
      */
     public void saveSettings() {
-         
-        String encoding = theSettings.getDefaultStringEncoding();
-        Codec theCodec = Codec.getCodec(encoding);
-        encodingComboBox.setSelectedItem(theCodec);        
         
-        OutputStream filestream = null;
-        try{
-            //use buffering
-            //serialize the List
-            //note the use of abstract base class references           
-            //use buffering
-            filestream = new FileOutputStream(Settings.SETTINGS_FILENAME);
-            OutputStream buffer = new BufferedOutputStream(filestream);
-            ObjectOutput output = new ObjectOutputStream(buffer);
-            output.writeObject(theSettings);
-            output.flush();
-            output.close();
-                  
-        } catch (IOException ex) {
-            Logger.getLogger(MainJFrame.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            if( filestream != null ){
-                try {
-                    filestream.close();
-                } catch (IOException ex) {
+        File saveFile = null;
+        theFileChooser.setSelectedFile(new File("settings.dat"));
+        int returnVal = theFileChooser.showDialog( this, "Select File(s)" ); //Show the dialog
+        switch( returnVal ) {
+
+          case JFileChooser.CANCEL_OPTION: //If the user canceled the selecting...
+          case JFileChooser.ERROR_OPTION: //If the dialog was dismissed or an error occurred...
+            break; //Do nothing
+
+          case JFileChooser.APPROVE_OPTION: //If the user approved the selection...
+            saveFile = theFileChooser.getSelectedFile(); //Get the files the user selected
+            break;
+          default:
+            break;
+
+        }
+
+        //Open file and read it
+        if(saveFile != null){     
+         
+            String encoding = theSettings.getDefaultStringEncoding();
+            Codec theCodec = Codec.getCodec(encoding);
+            encodingComboBox.setSelectedItem(theCodec);        
+
+            OutputStream filestream = null;
+            try{
+                //use buffering
+                //serialize the List
+                //note the use of abstract base class references           
+                //use buffering
+                filestream = new FileOutputStream(userSelectedFile);
+                OutputStream buffer = new BufferedOutputStream(filestream);
+                ObjectOutput output = new ObjectOutputStream(buffer);
+                output.writeObject(theSettings);
+                output.flush();
+                output.close();
+
+            } catch (IOException ex) {
+                Logger.getLogger(MainJFrame.class.getName()).log(Level.SEVERE, null, ex);
+            } finally {
+                if( filestream != null ){
+                    try {
+                        filestream.close();
+                    } catch (IOException ex) {
+                    }
                 }
             }
         }
@@ -834,6 +904,15 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
      */
     public Codec getSelectedCodec() {
          return (Codec) encodingComboBox.getSelectedItem();  
+    }
+    
+    //========================================================================
+    /**
+     * 
+     * @param passedCodec 
+     */
+    public void setSelectedCodec( Codec passedCodec ) {
+         encodingComboBox.setSelectedItem(passedCodec);
     }
 
 }
