@@ -35,34 +35,48 @@ The copyright on this package is held by Securifera, Inc
 */
 
 /*
- * SettingsJDialog.java
+ * PeHeadersJDialog.java
  *
  */
 
-package rsrc_edit.settings;
+package rsrc_edit.pe;
 
 import java.awt.Cursor;
 import java.awt.event.WindowEvent;
-import java.util.Enumeration;
-import javax.swing.AbstractButton;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.channels.FileChannel;
+import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JDialog;
+import javax.swing.JOptionPane;
 import rsrc_edit.JDialogListener;
 import rsrc_edit.MainJFrame;
+import rsrc_edit.SavableListener;
+import rsrc_edit.SavableTextField;
+import rsrc_edit.StandardValidation;
+import rsrc_edit.StringResourceJPanel;
+import rsrc_edit.ValidTextField;
+import rsrc_edit.settings.*;
 
 /**
  *
  *  
  */
-public class SettingsJDialog extends JDialog {
+public class PeHeadersJDialog extends JDialog implements SavableListener {
     
     private final JDialogListener theListener;
-    private static final String NAME_Class = SettingsJDialog.class.getSimpleName();
+    private static final String NAME_Class = PeHeadersJDialog.class.getSimpleName();
  
     //=======================================================================
     /** Creates new form SettingsJDialog
      * @param parent
      * @param modal */
-    public SettingsJDialog( JDialogListener parent, boolean modal ) {
+    public PeHeadersJDialog( JDialogListener parent, boolean modal ) {
        super( parent.getParentJFrame() , modal);
        
        theListener = parent;
@@ -79,27 +93,16 @@ public class SettingsJDialog extends JDialog {
     */
     private void initializeComponents(){
         
-        xorKeyValue.setVisible(false);
-        xorKeyLabel.setVisible(false);
-        
-        //encodingButtonGroup.add(base64Button);
-        encodingButtonGroup.add( asciiSpacerButton);
-        encodingButtonGroup.add( noneButton);
-        encodingButtonGroup.add( xorButton);
-        
+         
+        ((ValidTextField)imageBaseValue).setValidation(StandardValidation.KEYWORD_DECIMAL_OR_HEX);
         MainJFrame parentFrame = theListener.getParentJFrame();
         if( parentFrame != null ){
-            Settings theSettings = parentFrame.getSettings();
-            String encoding = theSettings.getDefaultStringEncoding();
-            
-            Enumeration<AbstractButton> buttons = encodingButtonGroup.getElements();
-            while( buttons.hasMoreElements()){
-                AbstractButton aButton = buttons.nextElement();
-                if( aButton.getText().equals(encoding) ){
-                    aButton.setSelected(true);
-                    break;
-                }
-            }
+            NtHeader theNtHeader = parentFrame.getNtHeader();
+            if( theNtHeader != null ){
+                ImageOptionalHeader optHeader = theNtHeader.OptionalHeader;
+                long imageBase = optHeader.getImageBase();
+                imageBaseValue.setText("0x"+Long.toHexString(imageBase));     
+            }   
         }
               
     }
@@ -111,8 +114,10 @@ public class SettingsJDialog extends JDialog {
     public void setSaveButton(boolean passedBool){
         if(passedBool)
             saveOrOkJButton.setText("Save");
-        else
+        else {
             saveOrOkJButton.setText("OK");
+            ((SavableTextField)imageBaseValue).reset();
+        }
         
     }
 
@@ -129,11 +134,9 @@ public class SettingsJDialog extends JDialog {
         cancelJButton = new javax.swing.JButton();
         saveOrOkJButton = new javax.swing.JButton();
         encodingPanel = new javax.swing.JPanel();
-        asciiSpacerButton = new javax.swing.JRadioButton();
-        noneButton = new javax.swing.JRadioButton();
-        xorButton = new javax.swing.JRadioButton();
-        xorKeyValue = new javax.swing.JTextField();
-        xorKeyLabel = new javax.swing.JLabel();
+        ntHeaderPanel = new javax.swing.JPanel();
+        imageBaseValue = new SavableTextField( this );
+        imageBaseLabel = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Options");
@@ -154,61 +157,44 @@ public class SettingsJDialog extends JDialog {
             }
         });
 
-        encodingPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Default String Encoding"));
-
-        asciiSpacerButton.setText("Byte Spacer");
-        asciiSpacerButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                asciiSpacerButtonActionPerformed(evt);
-            }
-        });
-
-        noneButton.setText("None");
-        noneButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                noneButtonActionPerformed(evt);
-            }
-        });
-
-        xorButton.setText("XOR");
-        xorButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                xorButtonActionPerformed(evt);
-            }
-        });
-
-        xorKeyLabel.setText("Key (Hex):");
+        encodingPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("DOS Header"));
 
         javax.swing.GroupLayout encodingPanelLayout = new javax.swing.GroupLayout(encodingPanel);
         encodingPanel.setLayout(encodingPanelLayout);
         encodingPanelLayout.setHorizontalGroup(
             encodingPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(encodingPanelLayout.createSequentialGroup()
-                .addGap(17, 17, 17)
-                .addGroup(encodingPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(encodingPanelLayout.createSequentialGroup()
-                        .addComponent(xorButton)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 70, Short.MAX_VALUE)
-                        .addComponent(xorKeyLabel)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(xorKeyValue, javax.swing.GroupLayout.PREFERRED_SIZE, 172, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(noneButton)
-                    .addComponent(asciiSpacerButton))
-                .addContainerGap())
+            .addGap(0, 378, Short.MAX_VALUE)
         );
         encodingPanelLayout.setVerticalGroup(
             encodingPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(encodingPanelLayout.createSequentialGroup()
-                .addGap(20, 20, 20)
-                .addComponent(noneButton)
-                .addGap(3, 3, 3)
-                .addComponent(asciiSpacerButton)
-                .addGap(3, 3, 3)
-                .addGroup(encodingPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(xorButton, javax.swing.GroupLayout.DEFAULT_SIZE, 25, Short.MAX_VALUE)
-                    .addComponent(xorKeyValue, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(xorKeyLabel))
-                .addGap(50, 50, 50))
+            .addGap(0, 131, Short.MAX_VALUE)
+        );
+
+        ntHeaderPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("NT Header"));
+
+        imageBaseValue.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
+
+        imageBaseLabel.setText("Image Base:");
+
+        javax.swing.GroupLayout ntHeaderPanelLayout = new javax.swing.GroupLayout(ntHeaderPanel);
+        ntHeaderPanel.setLayout(ntHeaderPanelLayout);
+        ntHeaderPanelLayout.setHorizontalGroup(
+            ntHeaderPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(ntHeaderPanelLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(imageBaseLabel)
+                .addGap(18, 18, 18)
+                .addComponent(imageBaseValue, javax.swing.GroupLayout.PREFERRED_SIZE, 164, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        ntHeaderPanelLayout.setVerticalGroup(
+            ntHeaderPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(ntHeaderPanelLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(ntHeaderPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(imageBaseValue, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(imageBaseLabel))
+                .addContainerGap(100, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -223,15 +209,18 @@ public class SettingsJDialog extends JDialog {
                         .addComponent(saveOrOkJButton, javax.swing.GroupLayout.PREFERRED_SIZE, 65, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(2, 2, 2)
                         .addComponent(cancelJButton))
-                    .addComponent(encodingPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(encodingPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(ntHeaderPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(encodingPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(encodingPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(ntHeaderPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(saveOrOkJButton)
                     .addComponent(cancelJButton))
@@ -255,18 +244,7 @@ public class SettingsJDialog extends JDialog {
             
             MainJFrame parentFrame = theListener.getParentJFrame();
             if( parentFrame != null ){
-                Settings theSettings = parentFrame.getSettings();
-                for (Enumeration<AbstractButton> buttons = encodingButtonGroup.getElements(); buttons.hasMoreElements();) {
-                    AbstractButton button = buttons.nextElement();
-
-                    //Set and save
-                    if (button.isSelected()) {
-                        String encoding = button.getText();
-                        theSettings.setDefaultStringEncoding(encoding);
-                        parentFrame.saveSettings();
-                    }
-                }
-               
+                saveHeaderData(parentFrame);               
             }
                         
             try {
@@ -280,35 +258,15 @@ public class SettingsJDialog extends JDialog {
         
    }//GEN-LAST:event_saveOrOkJButtonActionPerformed
 
-    private void asciiSpacerButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_asciiSpacerButtonActionPerformed
-        setSaveButton(true);
-        xorKeyValue.setVisible(false);
-        xorKeyLabel.setVisible(false);
-    }//GEN-LAST:event_asciiSpacerButtonActionPerformed
-
-    private void noneButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_noneButtonActionPerformed
-        setSaveButton(true);
-        xorKeyValue.setVisible(false);
-        xorKeyLabel.setVisible(false);
-    }//GEN-LAST:event_noneButtonActionPerformed
-
-    private void xorButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_xorButtonActionPerformed
-        setSaveButton(true);
-        xorKeyValue.setVisible(true);
-        xorKeyLabel.setVisible(true);
-    }//GEN-LAST:event_xorButtonActionPerformed
-
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JRadioButton asciiSpacerButton;
     private javax.swing.JButton cancelJButton;
     private javax.swing.ButtonGroup encodingButtonGroup;
     private javax.swing.JPanel encodingPanel;
-    private javax.swing.JRadioButton noneButton;
+    private javax.swing.JLabel imageBaseLabel;
+    private javax.swing.JTextField imageBaseValue;
+    private javax.swing.JPanel ntHeaderPanel;
     private javax.swing.JButton saveOrOkJButton;
-    private javax.swing.JRadioButton xorButton;
-    private javax.swing.JLabel xorKeyLabel;
-    private javax.swing.JTextField xorKeyValue;
     // End of variables declaration//GEN-END:variables
 
     //========================================================================
@@ -343,10 +301,101 @@ public class SettingsJDialog extends JDialog {
     /**
     *   Handles the logic necessary before the dialog is closed
     */
-    private void closeDialog() {               
-                
+    private void closeDialog() {
         dispose();
+    }
 
+    // ==========================================================================
+    /**
+     * 
+     */
+    @Override
+    public void savableValueChanged() {
+        setSaveButton(true);
+    }
+
+    // ==========================================================================
+    /**
+     * 
+     */
+    private void saveHeaderData( MainJFrame passedFrame  ) {
+                    
+        //Get image base value
+        if( ((SavableTextField)imageBaseValue).isDirty() ){
+            
+            //Get the image base address
+            String userString = imageBaseValue.getText();
+            long imageBase = Long.decode(userString);
+
+            //Get offset in file to write to
+            NtHeader theNtHeader = passedFrame.getNtHeader();
+            if( theNtHeader != null ){   
+
+                //Get offset of image base
+                int fileOffset = theNtHeader.getFileOffset();
+                fileOffset += 4; //PE Signature
+                fileOffset += ImageFileHeader.IMAGE_FILE_HEADER_SIZE;
+                fileOffset += ImageOptionalHeader.BASE_HEADER_SIZE;
+
+                ByteBuffer buf;
+                ImageOptionalHeader theOptHeader = theNtHeader.OptionalHeader;
+                if( theOptHeader instanceof ImageOptionalHeader32 ){
+                    fileOffset += 4; //BaseofData
+                    
+                    buf = ByteBuffer.allocate(Integer.SIZE/Byte.SIZE);
+                    buf.order(ByteOrder.LITTLE_ENDIAN);  
+                    buf.putInt((int) imageBase);
+                    
+                } else {
+                    buf = ByteBuffer.allocate(Long.SIZE/Byte.SIZE);
+                    buf.order(ByteOrder.LITTLE_ENDIAN);
+                    buf.putLong(imageBase);
+                }
+                     
+                //Write to the file
+                buf.flip();
+                writeToFile(buf, fileOffset);
+               
+            }
+        }   
+        
+    }
+    
+    //=========================================================================
+    /**
+     * 
+     * @param aBB
+     * @param position 
+     */
+    public void writeToFile( ByteBuffer aBB, long position ){
+        
+        File binFile = theListener.getParentJFrame().getLoadedFile();
+        if( binFile != null ){
+            theListener.getParentJFrame();
+            
+            //Open file and write
+            FileOutputStream aFOS;
+            FileChannel currentBinaryFileChannel = null;    
+            try { 
+                //Open file
+                aFOS = new FileOutputStream(binFile, true);
+                currentBinaryFileChannel = aFOS.getChannel();
+
+                //Write to the file
+                currentBinaryFileChannel.write(aBB, position);
+                currentBinaryFileChannel.force(true);
+
+            } catch (IOException ex) {
+                Logger.getLogger(StringResourceJPanel.class.getName()).log(Level.SEVERE, null, ex);
+            } finally {
+                try {
+                    if(currentBinaryFileChannel != null )
+                        currentBinaryFileChannel.close();
+                } catch (IOException ex) {
+                }
+            }
+        }
+        
     }
 
 }

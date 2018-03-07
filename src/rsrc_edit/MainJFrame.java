@@ -40,11 +40,6 @@ import java.awt.Image;
 import java.awt.event.ItemEvent;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import rsrc_edit.pe.DosHeader;
-import rsrc_edit.pe.NtHeader;
-import rsrc_edit.pe.ImageSectionHeader;
-import rsrc_edit.resource.ResourceDataEntry;
-import rsrc_edit.resource.ResourceDirectoryTable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -76,15 +71,21 @@ import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import rsrc_edit.codec.Codec;
 import rsrc_edit.codec.Xor;
+import rsrc_edit.pe.DosHeader;
 import rsrc_edit.pe.ImageDataDirectory;
+import rsrc_edit.pe.ImageSectionHeader;
+import rsrc_edit.pe.NtHeader;
+import rsrc_edit.pe.PeHeadersJDialog;
+import rsrc_edit.resource.ResourceDataEntry;
+import rsrc_edit.resource.ResourceDirectoryTable;
 import rsrc_edit.settings.Settings;
-import rsrc_edit.settings.SettingsJDialogListener;
+
 
 /**
  *
  * @author user
  */
-public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListener, SettingsJDialogListener {
+public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListener, JDialogListener {
 
     private JFileChooser theFileChooser = null;
     private final ResourceJTree mainJTree;
@@ -97,6 +98,11 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
     
     //Savable settings
     private Settings theSettings = null;
+    
+    //Current binary headers
+    private DosHeader theDosHeader = null;
+    private NtHeader theNtHeader = null;
+    
      
     
       
@@ -197,7 +203,9 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
         fileMenu = new javax.swing.JMenu();
         loadMenuItem = new javax.swing.JMenuItem();
         exitMenuItem = new javax.swing.JMenuItem();
+
         settingsMenu = new javax.swing.JMenu();
+		peheadersItem = new javax.swing.JMenuItem();
         loadSettings = new javax.swing.JMenuItem();
         saveSettings = new javax.swing.JMenuItem();
         helpMenu = new javax.swing.JMenu();
@@ -313,6 +321,14 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
         fileMenu.add(exitMenuItem);
 
         mainMenuBar.add(fileMenu);
+
+        peheadersItem.setText("PE Headers");
+        peheadersItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                peheadersItemActionPerformed(evt);
+            }
+        });
+        settingsMenu.add(peheadersItem);
 
         settingsMenu.setText("Settings");
 
@@ -444,6 +460,11 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
         }
     }//GEN-LAST:event_xorKeyValueKeyReleased
 
+    private void peheadersItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_peheadersItemActionPerformed
+        PeHeadersJDialog headerDialog = new PeHeadersJDialog( this, true);
+        headerDialog.setVisible(true); // This blocks...(evt);
+    }//GEN-LAST:event_peheadersItemActionPerformed
+
     private void aboutMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_aboutMenuItemActionPerformed
 
         AboutJDialog aboutDialog = new AboutJDialog( null );
@@ -453,6 +474,7 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
     private void saveSettingsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveSettingsActionPerformed
         saveSettings();
     }//GEN-LAST:event_saveSettingsActionPerformed
+
 	
     private void exitMenuItemActionPerformed(java.awt.event.ActionEvent evt) {                                           
         System.exit(0);
@@ -519,6 +541,7 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
     private javax.swing.JMenuBar mainMenuBar;
     private javax.swing.JMenuItem saveSettings;
     private javax.swing.JMenu settingsMenu;
+    private javax.swing.JMenuItem peheadersItem;
     private javax.swing.JLabel sizeLabelVal;
     private javax.swing.JLabel typeLabel;
     private javax.swing.JLabel typeLabelVal;
@@ -683,7 +706,7 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
                 buf.flip();
                 
                 //Read the DOS header
-                DosHeader theDosHeader = new DosHeader(buf);
+                theDosHeader = new DosHeader(buf);
                 currentBinaryFileChannel.position(theDosHeader.e_lfanew);
               
                 //Read the NT header
@@ -693,7 +716,7 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
                 buf.flip();
                 
                 //Get the NT header
-                NtHeader theNtHeader = new NtHeader(buf);
+                theNtHeader = new NtHeader(buf, theDosHeader.e_lfanew);
                 
                 //Get Sections
                 HashMap<String, ImageSectionHeader> sectionHeaderMap = new HashMap<>();
@@ -913,6 +936,23 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
      */
     public void setSelectedCodec( Codec passedCodec ) {
          encodingComboBox.setSelectedItem(passedCodec);
+	}
+	
+    //========================================================================
+    /**
+     * @return 
+     */
+    public DosHeader getDosHeader() {
+        return theDosHeader;
+    }
+
+    //========================================================================
+    /**
+     * 
+     * @return 
+     */
+    public NtHeader getNtHeader() {
+        return theNtHeader;
     }
 
 }

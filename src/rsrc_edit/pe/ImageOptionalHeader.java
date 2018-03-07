@@ -41,9 +41,10 @@ import java.nio.ByteBuffer;
  *
  * @author user
  */
-public class ImageOptionalHeader {
+public abstract class ImageOptionalHeader {
     
     public static final int IMAGE_NUMBEROF_DIRECTORY_ENTRIES  =  16;
+    public static final int BASE_HEADER_SIZE = 24;
     
     public int   Magic;
     public int   MajorLinkerVersion;
@@ -88,4 +89,5 @@ public class ImageOptionalHeader {
         return 28 + (IMAGE_NUMBEROF_DIRECTORY_ENTRIES * 8 /* Size of ImageDataDir*/);
     }
     
+    abstract long getImageBase();
 }

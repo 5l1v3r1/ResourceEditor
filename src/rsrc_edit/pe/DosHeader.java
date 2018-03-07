@@ -65,7 +65,7 @@ public class DosHeader {
     public short   e_oemid;                     // OEM identifier (for e_oeminfo)
     public short   e_oeminfo;                   // OEM information; e_oemid specific
     public short[] e_res2 = new short[10];      // Reserved words
-    public long    e_lfanew;                    // File address of new exe header
+    public int     e_lfanew;                    // File address of new exe header
     
     public DosHeader( ByteBuffer passedBB ) throws IOException{
         

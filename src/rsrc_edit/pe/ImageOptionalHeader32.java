@@ -119,5 +119,15 @@ public class ImageOptionalHeader32 extends ImageOptionalHeader{
         int ret = super.size();
         return ret + 68;
     }
+
+    //=========================================================================
+    /**
+     * 
+     * @return 
+     */
+    @Override
+    public long getImageBase() {
+        return ImageBase;
+    }
     
 }
