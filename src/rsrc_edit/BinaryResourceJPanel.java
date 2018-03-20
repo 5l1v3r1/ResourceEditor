@@ -150,7 +150,7 @@ public class BinaryResourceJPanel extends javax.swing.JPanel {
     
         setCursor( Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR) );
         File userSelectedFile = null;
-        int returnVal = theFileChooser.showDialog( this, "Select File(s)" ); //Show the dialog
+        int returnVal = theFileChooser.showDialog( this, "Select File" ); //Show the dialog
         switch( returnVal ) {
 
             case JFileChooser.CANCEL_OPTION: //If the user canceled the selecting...
