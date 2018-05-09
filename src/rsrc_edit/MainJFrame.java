@@ -606,12 +606,12 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
       //Load binary from disk
     private void loadSettings() {
         
-        JFileChooser settingsFileChooser = new JFileChooser();
-        settingsFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        settingsFileChooser.setMultiSelectionEnabled( false ); 
+        //JFileChooser settingsFileChooser = new JFileChooser();
+        theFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        theFileChooser.setMultiSelectionEnabled( false ); 
         
         File loadFile = null;
-        int returnVal = settingsFileChooser.showDialog( this, "Select Settings File" ); //Show the dialog
+        int returnVal = theFileChooser.showDialog( this, "Select Settings File" ); //Show the dialog
         switch( returnVal ) {
 
           case JFileChooser.CANCEL_OPTION: //If the user canceled the selecting...
@@ -619,7 +619,7 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
             break; //Do nothing
 
           case JFileChooser.APPROVE_OPTION: //If the user approved the selection...
-            loadFile = settingsFileChooser.getSelectedFile(); //Get the files the user selected
+            loadFile = theFileChooser.getSelectedFile(); //Get the files the user selected
             break;
           default:
             break;
@@ -875,11 +875,11 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
     public void saveSettings() {
         
         File saveFile = null;
-        JFileChooser theSettingsFileChooser = new JFileChooser();
-        theSettingsFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        theSettingsFileChooser.setMultiSelectionEnabled( false ); 
-        theSettingsFileChooser.setSelectedFile(new File("settings.dat"));
-        int returnVal = theSettingsFileChooser.showDialog( this, "Save File" ); //Show the dialog
+        //JFileChooser theSettingsFileChooser = new JFileChooser();
+        theFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        theFileChooser.setMultiSelectionEnabled( false ); 
+        theFileChooser.setSelectedFile(new File("settings.dat"));
+        int returnVal = theFileChooser.showDialog( this, "Save File" ); //Show the dialog
         switch( returnVal ) {
 
           case JFileChooser.CANCEL_OPTION: //If the user canceled the selecting...
@@ -887,7 +887,7 @@ public class MainJFrame extends javax.swing.JFrame implements TreeSelectionListe
             break; //Do nothing
 
           case JFileChooser.APPROVE_OPTION: //If the user approved the selection...
-            saveFile = theSettingsFileChooser.getSelectedFile(); //Get the files the user selected
+            saveFile = theFileChooser.getSelectedFile(); //Get the files the user selected
             break;
           default:
             break;

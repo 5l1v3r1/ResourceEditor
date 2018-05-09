@@ -158,35 +158,35 @@ public class ResourceController extends Controller implements Iconable, Ancestor
                     //Get the resource section
                     ImageSectionHeader resourceSectionHeader = sectionHeaderMap.get(".rsrc");
                    // long size = resourceSectionHeader.SizeOfRawData;
-                    long rawResourceAddr = resourceSectionHeader.PointerToRawData;
-                    
-                    
-                    //Get the resource data
-                    buf.position((int) rawResourceAddr);
-                    ByteBuffer buf2 = buf.slice();
-                    buf2.order(ByteOrder.LITTLE_ENDIAN); // or ByteOrder.BIG_ENDIAN
+                    if( resourceSectionHeader != null ){
+                        long rawResourceAddr = resourceSectionHeader.PointerToRawData;
 
-                    //Parse resource table
-                    ResourceDirectoryTable mainTable = new ResourceDirectoryTable(buf2, (rawResourceAddr - resourceVitualAddr), theRDE.DataVirtualAddr );
-                    List<ResourceDataEntry> resourceList = mainTable.getResources();
+                        //Get the resource data
+                        buf.position((int) rawResourceAddr);
+                        ByteBuffer buf2 = buf.slice();
+                        buf2.order(ByteOrder.LITTLE_ENDIAN); // or ByteOrder.BIG_ENDIAN
 
-                     //Go get data
-                    for( ResourceDataEntry aRDS : resourceList ) {
+                        //Parse resource table
+                        ResourceDirectoryTable mainTable = new ResourceDirectoryTable(buf2, (rawResourceAddr - resourceVitualAddr), theRDE.DataVirtualAddr );
+                        List<ResourceDataEntry> resourceList = mainTable.getResources();
 
-                        if( aRDS.data == null ){                       
+                         //Go get data
+                        for( ResourceDataEntry aRDS : resourceList ) {
 
-                            buf.position((int) aRDS.DataVirtualAddr);
+                            if( aRDS.data == null ){                       
 
-                            aRDS.data = new byte[(int)aRDS.Size];
-                            buf.get(aRDS.data);
+                                buf.position((int) aRDS.DataVirtualAddr);
 
+                                aRDS.data = new byte[(int)aRDS.Size];
+                                buf.get(aRDS.data);
+
+                            }
+
+                            //Add the resource
+                            ResourceController aRC = new ResourceController( parentFrame, aRDS );
+                            childControllers.add(aRC);
                         }
-                        
-                        //Add the resource
-                        ResourceController aRC = new ResourceController( parentFrame, aRDS );
-                        childControllers.add(aRC);
                     }
-                    
                 } catch (IOException ex) {
                     Logger.getLogger(ResourceController.class.getName()).log(Level.SEVERE, null, ex);
                 }
